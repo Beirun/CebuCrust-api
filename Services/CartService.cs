@@ -1,18 +1,18 @@
-﻿// Services/CartService.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
     public interface ICartService
     {
         Task<IEnumerable<Cart>> GetByUserIdAsync(int userId);
-        Task<Cart> CreateAsync(Cart cart);
-        Task<Cart?> UpdateAsync(int userId, int pizzaId, Cart cart);
+        Task<Cart> CreateAsync(int userId, int pizzaId, int quantity);
+        Task<Cart?> UpdateAsync(int userId, int pizzaId, int quantity);
         Task<bool> DeleteAsync(int userId, int pizzaId);
     }
 
@@ -27,20 +27,27 @@ namespace CebuCrust_api.Services
                            .Where(c => c.UserId == userId)
                            .ToListAsync();
 
-        public async Task<Cart> CreateAsync(Cart cart)
+        public async Task<Cart> CreateAsync(int userId, int pizzaId, int quantity)
         {
-            cart.DateCreated = DateTime.UtcNow;
+            var cart = new Cart
+            {
+                UserId = userId,
+                PizzaId = pizzaId,
+                Quantity = quantity,
+                DateCreated = DateTime.UtcNow
+            };
+
             _db.Carts.Add(cart);
             await _db.SaveChangesAsync();
             return cart;
         }
 
-        public async Task<Cart?> UpdateAsync(int userId, int pizzaId, Cart cart)
+        public async Task<Cart?> UpdateAsync(int userId, int pizzaId, int quantity)
         {
             var existing = await _db.Carts.FindAsync(pizzaId, userId);
             if (existing == null) return null;
 
-            existing.Quantity = cart.Quantity;
+            existing.Quantity = quantity;
             existing.DateUpdated = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             return existing;
@@ -55,5 +62,11 @@ namespace CebuCrust_api.Services
             await _db.SaveChangesAsync();
             return true;
         }
+    }
+    public class CartRequest
+    {
+        public int UserId { get; set; }
+        public int PizzaId { get; set; }
+        public int Quantity { get; set; }
     }
 }
