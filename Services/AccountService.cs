@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using CebuCrust_api.Data;
+using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 
 namespace CebuCrust_api.Services
