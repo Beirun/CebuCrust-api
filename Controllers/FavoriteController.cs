@@ -1,5 +1,4 @@
-﻿// Controllers/FavoriteController.cs
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
@@ -20,10 +19,11 @@ namespace CebuCrust_api.Controllers
             Ok(await _svc.GetByUserIdAsync(userId));
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Favorite f)
+        public async Task<IActionResult> Create([FromBody] FavoriteRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var created = await _svc.CreateAsync(f);
+
+            var created = await _svc.CreateAsync(request);
             return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
         }
 
@@ -31,4 +31,6 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Delete(int userId, int pizzaId) =>
             await _svc.DeleteAsync(userId, pizzaId) ? NoContent() : NotFound();
     }
+
+    
 }
