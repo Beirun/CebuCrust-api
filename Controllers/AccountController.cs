@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
 using CebuCrust_api.Services;
@@ -11,11 +12,7 @@ namespace CebuCrust_api.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _svc;
-
-        public AccountController(IAccountService svc)
-        {
-            _svc = svc;
-        }
+        public AccountController(IAccountService svc) => _svc = svc;
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -27,26 +24,49 @@ namespace CebuCrust_api.Controllers
                 UserFName = request.FirstName,
                 UserLName = request.LastName,
                 UserEmail = request.Email,
-                UserPhoneNo = request.PhoneNo,
+                UserPhoneNo = request.PhoneNo
             };
 
             try
             {
-                var result = await _svc.RegisterAsync(u, request.Password);
-                return Ok(result);
+                var res = await _svc.RegisterAsync(u, request.Password, request.ConfirmPassword);
+                SetRefreshCookie(res.RefreshToken);
+                return Ok(new { token = res.AccessToken, user = res.User });
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var result = await _svc.LoginAsync(request.Email, request.Password);
-            if (result == null) return Unauthorized(new { message = "Invalid credentials" });
-            return Ok(result);
+            var res = await _svc.LoginAsync(request.Email, request.Password);
+            if (res == null) return Unauthorized(new { message = "Invalid credentials" });
+            SetRefreshCookie(res.RefreshToken);
+            return Ok(new { token = res.AccessToken, user = res.User });
+        }
+
+        [HttpPost("refresh")]
+        public IActionResult Refresh()
+        {
+            var cookie = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(cookie)) return Unauthorized(new { message = "No refresh token" });
+
+            var newAccess = _svc.Refresh(cookie);
+            if (newAccess == null) return Unauthorized(new { message = "Invalid or expired refresh token" });
+
+            return Ok(new { token = newAccess });
+        }
+
+        private void SetRefreshCookie(string token)
+        {
+            Response.Cookies.Append("refreshToken", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
         }
     }
 
@@ -57,7 +77,9 @@ namespace CebuCrust_api.Controllers
         public string Email { get; set; } = "";
         public string? PhoneNo { get; set; }
         public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
     }
+
 
     public class LoginRequest
     {
