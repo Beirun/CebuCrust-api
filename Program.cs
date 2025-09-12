@@ -2,10 +2,10 @@ using CebuCrust_api.Data;
 using CebuCrust_api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using System;
+using Microsoft.OpenApi.Models;
 using System.Text;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,20 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection")
               ?? "Data Source=CebuCrust.db";
 
-
+// Add JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-
 }).AddJwtBearer(options =>
 {
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -44,18 +42,56 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connStr));
 
-
 // Add services
 builder.Services.AddScoped<IAccountService, AccountService>();
-
-
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPizzaService, PizzaService>();
+builder.Services.AddScoped<IRatingService, RatingService>();
 
 // Add controllers
 builder.Services.AddControllers();
 
-// Optional: Enable Swagger for testing
+// Enable Swagger with JWT Authorization
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CebuCrust API",
+        Version = "v1",
+        Description = "Pizza ordering API"
+    });
+
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\n\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\""
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -63,14 +99,31 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.DefaultModelsExpandDepth(-1); // Hide schemas section
+    });
 }
 
-// Optional middleware
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Users")),
+    RequestPath = "/Resources/Users"
+});
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Pizzas")),
+    RequestPath = "/Resources/Pizzas"
+});
+
+
+// Middleware pipeline
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
