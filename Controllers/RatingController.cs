@@ -1,5 +1,4 @@
-﻿// Controllers/RatingController.cs
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
@@ -27,18 +26,20 @@ namespace CebuCrust_api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Rating r)
+        public async Task<IActionResult> Create([FromBody] RatingRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var created = await _svc.CreateAsync(r);
+
+            var created = await _svc.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = created.RatingId }, created);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Rating r)
+        public async Task<IActionResult> Update(int id, [FromBody] RatingRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var updated = await _svc.UpdateAsync(id, r);
+
+            var updated = await _svc.UpdateAsync(id, request);
             return updated == null ? NotFound() : Ok(updated);
         }
 
@@ -46,4 +47,6 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Delete(int id) =>
             await _svc.DeleteAsync(id) ? NoContent() : NotFound();
     }
+
+    
 }
