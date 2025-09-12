@@ -105,19 +105,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Users")),
-    RequestPath = "/Resources/Users"
-});
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Pizzas")),
-    RequestPath = "/Resources/Pizzas"
-});
 
 
 // Middleware pipeline
