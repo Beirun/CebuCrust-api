@@ -1,4 +1,4 @@
-using CebuCrust_api.Data;
+using CebuCrust_api.Config;
 using CebuCrust_api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
