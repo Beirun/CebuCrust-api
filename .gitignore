@@ -16,7 +16,7 @@
 
 
 #database
-*.db
+CebuCrust.db
 CebuCrust.db-shm
 CebuCrust.db-wal
 
