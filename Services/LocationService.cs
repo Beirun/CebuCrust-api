@@ -1,18 +1,18 @@
-﻿// Services/LocationService.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
     public interface ILocationService
     {
         Task<IEnumerable<Location>> GetByUserIdAsync(int userId);
-        Task<Location> CreateAsync(Location loc);
-        Task<Location?> UpdateAsync(int id, Location loc);
+        Task<Location> CreateAsync(LocationRequest request);
+        Task<Location?> UpdateAsync(int id, LocationRequest request);
         Task<bool> DeleteAsync(int id);
     }
 
@@ -27,23 +27,33 @@ namespace CebuCrust_api.Services
                                .Where(l => l.UserId == userId)
                                .ToListAsync();
 
-        public async Task<Location> CreateAsync(Location loc)
+        public async Task<Location> CreateAsync(LocationRequest request)
         {
-            loc.DateCreated = DateTime.UtcNow;
+            var loc = new Location
+            {
+                UserId = request.UserId,
+                LocationCity = request.LocationCity,
+                LocationBrgy = request.LocationBrgy,
+                LocationStreet = request.LocationStreet,
+                LocationHouseNo = request.LocationHouseNo,
+                DateCreated = DateTime.UtcNow
+            };
+
             _db.Locations.Add(loc);
             await _db.SaveChangesAsync();
             return loc;
         }
 
-        public async Task<Location?> UpdateAsync(int id, Location loc)
+        public async Task<Location?> UpdateAsync(int id, LocationRequest request)
         {
             var existing = await _db.Locations.FindAsync(id);
             if (existing == null) return null;
 
-            existing.LocationCity = loc.LocationCity;
-            existing.LocationBrgy = loc.LocationBrgy;
-            existing.LocationStreet = loc.LocationStreet;
-            existing.LocationHouseNo = loc.LocationHouseNo;
+            existing.UserId = request.UserId;
+            existing.LocationCity = request.LocationCity;
+            existing.LocationBrgy = request.LocationBrgy;
+            existing.LocationStreet = request.LocationStreet;
+            existing.LocationHouseNo = request.LocationHouseNo;
             existing.DateUpdated = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
@@ -59,5 +69,13 @@ namespace CebuCrust_api.Services
             await _db.SaveChangesAsync();
             return true;
         }
+    }
+    public class LocationRequest
+    {
+        public int UserId { get; set; }
+        public string LocationCity { get; set; } = "";
+        public string? LocationBrgy { get; set; }
+        public string? LocationStreet { get; set; }
+        public string? LocationHouseNo { get; set; }
     }
 }
