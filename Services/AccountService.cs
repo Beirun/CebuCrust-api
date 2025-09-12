@@ -147,4 +147,20 @@ namespace CebuCrust_api.Services
             new UserResponse(u.UserId, u.UserFName, u.UserLName, u.UserEmail,
                         u.UserPhoneNo, u.DateCreated);
     }
+    public class RegisterRequest
+    {
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string? PhoneNo { get; set; }
+        public string Password { get; set; } = "";
+        public string ConfirmPassword { get; set; } = "";
+    }
+
+
+    public class LoginRequest
+    {
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
 }
