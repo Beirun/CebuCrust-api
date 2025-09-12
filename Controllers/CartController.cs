@@ -1,5 +1,4 @@
-﻿// Controllers/CartController.cs
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
@@ -20,23 +19,27 @@ namespace CebuCrust_api.Controllers
             Ok(await _svc.GetByUserIdAsync(userId));
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Cart cart)
+        public async Task<IActionResult> Create([FromBody] CartRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var created = await _svc.CreateAsync(cart);
+
+            var created = await _svc.CreateAsync(request.UserId, request.PizzaId, request.Quantity);
             return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
         }
 
-        [HttpPut("{userId:int}/{pizzaId:int}")]
-        public async Task<IActionResult> Update(int userId, int pizzaId, [FromBody] Cart cart)
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] CartRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var updated = await _svc.UpdateAsync(userId, pizzaId, cart);
+
+            var updated = await _svc.UpdateAsync(request.UserId, request.PizzaId, request.Quantity);
             return updated == null ? NotFound() : Ok(updated);
         }
 
-        [HttpDelete("{userId:int}/{pizzaId:int}")]
-        public async Task<IActionResult> Delete(int userId, int pizzaId) =>
-            await _svc.DeleteAsync(userId, pizzaId) ? NoContent() : NotFound();
+        [HttpDelete]
+        public async Task<IActionResult> Delete([FromBody] CartRequest request) =>
+            await _svc.DeleteAsync(request.UserId, request.PizzaId) ? NoContent() : NotFound();
     }
+
+    
 }
