@@ -1,17 +1,17 @@
-﻿// Services/NotificationService.cs
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
     public interface INotificationService
     {
         Task<IEnumerable<Notification>> GetByUserIdAsync(int userId);
-        Task<Notification> CreateAsync(Notification n);
+        Task<Notification> CreateAsync(NotificationRequest request);
         Task<Notification?> UpdateStatusAsync(int id, string status);
         Task<bool> DeleteAsync(int id);
     }
@@ -27,9 +27,16 @@ namespace CebuCrust_api.Services
                                    .Where(n => n.UserId == userId)
                                    .ToListAsync();
 
-        public async Task<Notification> CreateAsync(Notification n)
+        public async Task<Notification> CreateAsync(NotificationRequest request)
         {
-            n.DateCreated = DateTime.UtcNow;
+            var n = new Notification
+            {
+                UserId = request.UserId,
+                NotificationMessage = request.NotificationMessage,
+                NotificationStatus = request.NotificationStatus,
+                DateCreated = DateTime.UtcNow
+            };
+
             _db.Notifications.Add(n);
             await _db.SaveChangesAsync();
             return n;
@@ -49,9 +56,18 @@ namespace CebuCrust_api.Services
         {
             var existing = await _db.Notifications.FindAsync(id);
             if (existing == null) return false;
+
             _db.Notifications.Remove(existing);
             await _db.SaveChangesAsync();
             return true;
         }
+    }
+    public class NotificationRequest
+    {
+        public int UserId { get; set; }
+
+        public string NotificationMessage { get; set; } = "";
+
+        public string? NotificationStatus { get; set; }
     }
 }
