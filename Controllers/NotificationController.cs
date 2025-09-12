@@ -1,9 +1,9 @@
-﻿// Controllers/NotificationController.cs
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
 using CebuCrust_api.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace CebuCrust_api.Controllers
 {
@@ -20,10 +20,11 @@ namespace CebuCrust_api.Controllers
             Ok(await _svc.GetByUserIdAsync(userId));
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Notification n)
+        public async Task<IActionResult> Create([FromBody] NotificationRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var created = await _svc.CreateAsync(n);
+
+            var created = await _svc.CreateAsync(request);
             return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
         }
 
@@ -39,4 +40,6 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Delete(int id) =>
             await _svc.DeleteAsync(id) ? NoContent() : NotFound();
     }
+
+    
 }
