@@ -1,5 +1,6 @@
 using CebuCrust_api.Config;
 using CebuCrust_api.Services;
+using CebuCrust_api.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -12,6 +13,19 @@ var builder = WebApplication.CreateBuilder(args);
 // SQLite connection string (database file in project root)
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection")
               ?? "Data Source=CebuCrust.db";
+
+// Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 
 // Add JWT Authentication
 builder.Services.AddAuthentication(options =>
@@ -109,6 +123,7 @@ if (app.Environment.IsDevelopment())
 
 // Middleware pipeline
 app.UseHttpsRedirection();
+app.UseCors("AllowSpecificOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
