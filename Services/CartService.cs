@@ -1,6 +1,7 @@
 ﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using Microsoft.EntityFrameworkCore;
+using CebuCrust_api.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,7 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    public interface ICartService
-    {
-        Task<IEnumerable<Cart>> GetByUserIdAsync(int userId);
-        Task<Cart> CreateAsync(int userId, int pizzaId, int quantity);
-        Task<Cart?> UpdateAsync(int userId, int pizzaId, int quantity);
-        Task<bool> DeleteAsync(int userId, int pizzaId);
-    }
+    
 
     public class CartService : ICartService
     {
@@ -63,10 +58,5 @@ namespace CebuCrust_api.Services
             return true;
         }
     }
-    public class CartRequest
-    {
-        public int UserId { get; set; }
-        public int PizzaId { get; set; }
-        public int Quantity { get; set; }
-    }
+    
 }
