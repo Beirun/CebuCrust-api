@@ -1,5 +1,7 @@
 ﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,13 +10,7 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    public interface ILocationService
-    {
-        Task<IEnumerable<Location>> GetByUserIdAsync(int userId);
-        Task<Location> CreateAsync(LocationRequest request);
-        Task<Location?> UpdateAsync(int id, LocationRequest request);
-        Task<bool> DeleteAsync(int id);
-    }
+
 
     public class LocationService : ILocationService
     {
@@ -70,12 +66,5 @@ namespace CebuCrust_api.Services
             return true;
         }
     }
-    public class LocationRequest
-    {
-        public int UserId { get; set; }
-        public string LocationCity { get; set; } = "";
-        public string? LocationBrgy { get; set; }
-        public string? LocationStreet { get; set; }
-        public string? LocationHouseNo { get; set; }
-    }
+    
 }
