@@ -4,15 +4,11 @@ using System.Threading.Tasks;
 using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using Microsoft.EntityFrameworkCore;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 
 namespace CebuCrust_api.Services
 {
-    public interface IFavoriteService
-    {
-        Task<IEnumerable<Favorite>> GetByUserIdAsync(int userId);
-        Task<Favorite> CreateAsync(FavoriteRequest request);
-        Task<bool> DeleteAsync(int userId, int pizzaId);
-    }
 
     public class FavoriteService : IFavoriteService
     {
@@ -49,9 +45,5 @@ namespace CebuCrust_api.Services
             return true;
         }
     }
-    public class FavoriteRequest
-    {
-        public int UserId { get; set; }
-        public int PizzaId { get; set; }
-    }
+    
 }
