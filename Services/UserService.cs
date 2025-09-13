@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CebuCrust_api.Config;
 using CebuCrust_api.Models;
+using CebuCrust_api.ServiceModels;
+using CebuCrust_api.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.IO;
@@ -10,13 +12,6 @@ using BCrypt.Net;
 
 namespace CebuCrust_api.Services
 {
-    public interface IUserService
-    {
-        Task<IEnumerable<User>> GetAllAsync();
-        Task<User?> UpdateAsync(int id, UserUpdateRequest request);
-        Task<bool> DeleteAsync(int id);
-        Task SaveImageAsync(int userId, IFormFile file);
-    }
 
     public class UserService : IUserService
     {
@@ -94,17 +89,5 @@ namespace CebuCrust_api.Services
         }
     }
 
-    public class UserUpdateRequest
-    {
-        public string? UserFName { get; set; }
-        public string? UserLName { get; set; }
-        public string? UserEmail { get; set; }
-        public string? UserPhoneNo { get; set; }
-
-        public string? CurrentPassword { get; set; }
-        public string? NewPassword { get; set; }
-        public string? ConfirmPassword { get; set; }
-
-        public IFormFile? Image { get; set; }
-    }
+    
 }
