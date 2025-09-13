@@ -8,18 +8,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using CebuCrust_api.Config;
 using CebuCrust_api.Models;
-
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 namespace CebuCrust_api.Services
 {
-    public record AuthResult(string AccessToken, string RefreshToken, UserResponse User);
-    public record UserResponse(int UserId, string FirstName, string LastName, string Email,
-                      string? PhoneNo, DateTime DateCreated);
-    public interface IAccountService
-    {
-        Task<AuthResult> RegisterAsync(User u, string password, string confirmPassword);
-        Task<AuthResult?> LoginAsync(string email, string password);
-        string? Refresh(string refreshToken);
-    }
 
     public class AccountService : IAccountService
     {
@@ -65,8 +57,8 @@ namespace CebuCrust_api.Services
         {
             var u = await _db.Users.Include(r => r.Role)
                                    .FirstOrDefaultAsync(x => x.UserEmail == email);
-            if (u == null || !BCrypt.Net.BCrypt.Verify(password, u.PasswordHash))
-                return null;
+            if (u == null) throw new Exception("Invalid Credentials");
+            if (!BCrypt.Net.BCrypt.Verify(password, u.PasswordHash)) throw new Exception("Incorrect Password");
 
             return GenerateTokens(u);
         }
@@ -104,12 +96,13 @@ namespace CebuCrust_api.Services
             });
 
             var refresh = CreateRefreshToken(u.UserId);
-            return new AuthResult(access, refresh, MapUser(u));
+            AuthResult authResult = new AuthResult { AccessToken = access, RefreshToken = refresh, User = MapUser(u) };
+            return authResult;
         }
 
         private string CreateAccessToken(int userId, IEnumerable<Claim> extraClaims)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new List<Claim> { new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()) };
             claims.AddRange(extraClaims);
@@ -126,7 +119,7 @@ namespace CebuCrust_api.Services
 
         private string CreateRefreshToken(int userId)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
@@ -143,24 +136,19 @@ namespace CebuCrust_api.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        private static UserResponse MapUser(User u) =>
-            new UserResponse(u.UserId, u.UserFName, u.UserLName, u.UserEmail,
-                        u.UserPhoneNo, u.DateCreated);
-    }
-    public class RegisterRequest
-    {
-        public string FirstName { get; set; } = "";
-        public string LastName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public string? PhoneNo { get; set; }
-        public string Password { get; set; } = "";
-        public string ConfirmPassword { get; set; } = "";
-    }
 
+        private static UserResponse MapUser(User u)
+        {
 
-    public class LoginRequest
-    {
-        public string Email { get; set; } = "";
-        public string Password { get; set; } = "";
+            return new UserResponse
+            {
+                UserId = u.UserId,
+                FirstName = u.UserFName,
+                LastName = u.UserLName,
+                Email = u.UserEmail,
+                PhoneNo = u.UserPhoneNo,
+                DateCreated = u.DateCreated
+            };
+        }
     }
 }
