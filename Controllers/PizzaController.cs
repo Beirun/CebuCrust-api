@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CebuCrust_api.Models;
-using CebuCrust_api.Services;
+using CebuCrust_api.ServiceModels;
+using CebuCrust_api.Interfaces;
 
 namespace CebuCrust_api.Controllers
 {
@@ -28,7 +29,7 @@ namespace CebuCrust_api.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromForm] PizzaCreateRequest request)
+        public async Task<IActionResult> Create([FromForm] PizzaRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -50,7 +51,7 @@ namespace CebuCrust_api.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, [FromForm] PizzaUpdateRequest request)
+        public async Task<IActionResult> Update(int id, [FromForm] PizzaRequest request)
         {
             var pizza = new Pizza
             {
