@@ -1,5 +1,7 @@
 ﻿using CebuCrust_api.Config;
 using CebuCrust_api.Models;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,14 +10,7 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    public interface INotificationService
-    {
-        Task<IEnumerable<Notification>> GetByUserIdAsync(int userId);
-        Task<Notification> CreateAsync(NotificationRequest request);
-        Task<Notification?> UpdateStatusAsync(int id, string status);
-        Task<bool> DeleteAsync(int id);
-    }
-
+    
     public class NotificationService : INotificationService
     {
         private readonly AppDbContext _db;
@@ -62,12 +57,5 @@ namespace CebuCrust_api.Services
             return true;
         }
     }
-    public class NotificationRequest
-    {
-        public int UserId { get; set; }
-
-        public string NotificationMessage { get; set; } = "";
-
-        public string? NotificationStatus { get; set; }
-    }
+    
 }
