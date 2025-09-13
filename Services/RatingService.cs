@@ -1,6 +1,8 @@
 ﻿using CebuCrust_api.Config;
 using CebuCrust_api.Controllers;
 using CebuCrust_api.Models;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,15 +10,6 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    public interface IRatingService
-    {
-        Task<IEnumerable<Rating>> GetAllAsync();
-        Task<Rating?> GetByIdAsync(int id);
-        Task<Rating> CreateAsync(RatingRequest request);
-        Task<Rating?> UpdateAsync(int id, RatingRequest request);
-        Task<bool> DeleteAsync(int id);
-    }
-
     public class RatingService : IRatingService
     {
         private readonly AppDbContext _db;
@@ -72,11 +65,5 @@ namespace CebuCrust_api.Services
             return true;
         }
     }
-    public class RatingRequest
-    {
-        public int UserId { get; set; }
-        public int PizzaId { get; set; }
-        public int RatingValue { get; set; }
-        public string? RatingMessage { get; set; }
-    }
+   
 }
