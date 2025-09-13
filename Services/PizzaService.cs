@@ -3,20 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CebuCrust_api.Config;
+using CebuCrust_api.Interfaces;
 using CebuCrust_api.Models;
+using CebuCrust_api.ServiceModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace CebuCrust_api.Services
 {
-    public interface IPizzaService
-    {
-        Task<IEnumerable<PizzaResponse>> GetAllAsync();
-        Task<PizzaResponse?> GetByIdAsync(int id);
-        Task<Pizza> CreateAsync(Pizza p);
-        Task<Pizza?> UpdateAsync(int id, Pizza p);
-        Task<bool> DeleteAsync(int id);
-        Task SaveImageAsync(int pizzaId, IFormFile file);
-    }
 
     public class PizzaService : IPizzaService
     {
@@ -113,32 +106,6 @@ namespace CebuCrust_api.Services
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
         }
-    }
-    public class PizzaCreateRequest
-    {
-        public string PizzaName { get; set; } = "";
-        public string PizzaDescription { get; set; } = "";
-        public string PizzaCategory { get; set; } = "";
-        public decimal PizzaPrice { get; set; }
-        public IFormFile? Image { get; set; }
-    }
-
-    public class PizzaUpdateRequest
-    {
-        public string PizzaName { get; set; } = "";
-        public string PizzaDescription { get; set; } = "";
-        public string PizzaCategory { get; set; } = "";
-        public decimal PizzaPrice { get; set; }
-        public IFormFile? Image { get; set; }
-    }
-    public class PizzaResponse
-    {
-        public int PizzaId { get; set; }
-        public string PizzaName { get; set; } = "";
-        public string PizzaDescription { get; set; } = "";
-        public string PizzaCategory { get; set; } = "";
-        public decimal PizzaPrice { get; set; }
-        public string? ImageUrl { get; set; }
     }
 
 }
