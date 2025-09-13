@@ -2,6 +2,8 @@
 using CebuCrust_api.Controllers;
 using CebuCrust_api.Config;
 using CebuCrust_api.Models;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.ServiceModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,14 +11,6 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    public interface IOrderService
-    {
-        Task<IEnumerable<Order>> GetByUserIdAsync(int userId);
-        Task<IEnumerable<Order>> GetAllAsync(); // Admin only
-        Task<Order> CreateAsync(Order order, IEnumerable<OrderItemRequest> items);
-        Task<Order?> UpdateStatusAsync(int orderId, string status);
-        Task<bool> DeleteAsync(int orderId);
-    }
 
     public class OrderService : IOrderService
     {
@@ -82,20 +76,5 @@ namespace CebuCrust_api.Services
             await _db.SaveChangesAsync();
             return true;
         }
-    }
-    public class OrderRequest
-    {
-        public int UserId { get; set; }
-        public int LocationId { get; set; }
-        public string? OrderInstruction { get; set; }
-        public string? OrderStatus { get; set; }
-        public string? OrderEstimate { get; set; }
-        public List<OrderItemRequest> Items { get; set; } = new();
-    }
-
-    public class OrderItemRequest
-    {
-        public int PizzaId { get; set; }
-        public int Quantity { get; set; }
     }
 }
