@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CebuCrust_api.Models;
-using CebuCrust_api.Services;
+using CebuCrust_api.ServiceModels;
+using CebuCrust_api.Interfaces;
 
 namespace CebuCrust_api.Controllers
 {
