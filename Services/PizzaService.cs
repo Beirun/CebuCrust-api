@@ -69,18 +69,12 @@ namespace CebuCrust_api.Services
 
         private PizzaResponse ToResponse(Pizza p)
         {
-            var pizzasFolder = Path.Combine(_env.ContentRootPath, "Resources", "Pizzas");
-            string? imageUrl = null;
-
-            // Look for any file in Resources starting with PizzaId
-            if (Directory.Exists(pizzasFolder))
+            byte[]? imgData = null;
+            var folder = Path.Combine(_env.ContentRootPath, "Resources", "Pizzas");
+            if (Directory.Exists(folder))
             {
-                var file = Directory.GetFiles(pizzasFolder, p.PizzaId + ".*").FirstOrDefault();
-                if (file != null)
-                {
-                    var ext = Path.GetExtension(file);
-                    imageUrl = $"/Resources/Pizzas/{p.PizzaId}{ext}";
-                }
+                var file = Directory.GetFiles(folder, p.PizzaId + ".*").FirstOrDefault();
+                if (file != null) imgData = File.ReadAllBytes(file);
             }
 
             return new PizzaResponse
@@ -90,7 +84,7 @@ namespace CebuCrust_api.Services
                 PizzaDescription = p.PizzaDescription,
                 PizzaCategory = p.PizzaCategory,
                 PizzaPrice = p.PizzaPrice,
-                ImageUrl = imageUrl
+                pizzaImage = imgData
             };
         }
         public async Task SaveImageAsync(int pizzaId, IFormFile file)

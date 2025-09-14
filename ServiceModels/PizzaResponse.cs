@@ -7,6 +7,6 @@
         public string PizzaDescription { get; set; } = "";
         public string PizzaCategory { get; set; } = "";
         public decimal PizzaPrice { get; set; }
-        public string? ImageUrl { get; set; }
+        public byte[]? pizzaImage { get; set; }
     }
 }

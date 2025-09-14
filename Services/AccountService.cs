@@ -10,21 +10,26 @@ using CebuCrust_api.Config;
 using CebuCrust_api.Models;
 using CebuCrust_api.Interfaces;
 using CebuCrust_api.ServiceModels;
+using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Hosting;
+
 namespace CebuCrust_api.Services
 {
-
     public class AccountService : IAccountService
     {
         private readonly AppDbContext _db;
         private readonly IConfiguration _cfg;
+        private readonly IWebHostEnvironment _env;
         private readonly string _jwtKey;
         private readonly string _issuer;
         private readonly string _audience;
 
-        public AccountService(AppDbContext db, IConfiguration cfg)
+        public AccountService(AppDbContext db, IConfiguration cfg, IWebHostEnvironment env)
         {
             _db = db;
             _cfg = cfg;
+            _env = env;
             _jwtKey = _cfg["Jwt:Key"]!;
             _issuer = _cfg["Jwt:Issuer"]!;
             _audience = _cfg["Jwt:Audience"]!;
@@ -51,7 +56,6 @@ namespace CebuCrust_api.Services
 
             return GenerateTokens(u);
         }
-
 
         public async Task<AuthResult?> LoginAsync(string email, string password)
         {
@@ -96,8 +100,12 @@ namespace CebuCrust_api.Services
             });
 
             var refresh = CreateRefreshToken(u.UserId);
-            AuthResult authResult = new AuthResult { AccessToken = access, RefreshToken = refresh, User = MapUser(u) };
-            return authResult;
+            return new AuthResult
+            {
+                AccessToken = access,
+                RefreshToken = refresh,
+                User = MapUser(u)
+            };
         }
 
         private string CreateAccessToken(int userId, IEnumerable<Claim> extraClaims)
@@ -137,8 +145,22 @@ namespace CebuCrust_api.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private static UserResponse MapUser(User u)
+        private UserResponse MapUser(User u)
         {
+            byte[]? imgData = null;
+            var folder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+            if (Directory.Exists(folder))
+            {
+                var file = Directory.GetFiles(folder, u.UserId + ".*").FirstOrDefault();
+                if (file != null)
+                    imgData = File.ReadAllBytes(file);
+                else
+                {
+                    var def = Path.Combine(folder, "default.png");
+                    if (File.Exists(def))
+                        imgData = File.ReadAllBytes(def);
+                }
+            }
 
             return new UserResponse
             {
@@ -147,7 +169,8 @@ namespace CebuCrust_api.Services
                 LastName = u.UserLName,
                 Email = u.UserEmail,
                 PhoneNo = u.UserPhoneNo,
-                DateCreated = u.DateCreated
+                DateCreated = u.DateCreated,
+                ProfileImage = imgData
             };
         }
     }

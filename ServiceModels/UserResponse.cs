@@ -7,5 +7,6 @@
         public string Email { get; set; }
         public string? PhoneNo { get; set; }
         public DateTime DateCreated { get; set; }
+        public byte[]? ProfileImage { get; set; }
     }
 }
