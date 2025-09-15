@@ -25,7 +25,7 @@ namespace CebuCrust_api.Controllers
                 UserFName = request.FirstName,
                 UserLName = request.LastName,
                 UserEmail = request.Email,
-                UserPhoneNo = request.PhoneNo
+                UserPhoneNo = request.PhoneNumber
             };
 
             try
