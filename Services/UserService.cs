@@ -29,15 +29,15 @@ namespace CebuCrust_api.Services
                            .AsNoTracking()
                            .ToListAsync();
 
-        public async Task<User?> UpdateAsync(int id, UserUpdateRequest request)
+        public async Task<UserResponse?> UpdateAsync(int id, UserUpdateRequest request)
         {
             var existing = await _db.Users.FindAsync(id);
             if (existing == null) return null;
 
-            existing.UserFName = request.UserFName;
-            existing.UserLName = request.UserLName;
-            existing.UserEmail = request.UserEmail;
-            existing.UserPhoneNo = request.UserPhoneNo;
+            if(!string.IsNullOrEmpty(request.UserFName)) existing.UserFName = request.UserFName;
+            if (!string.IsNullOrEmpty(request.UserLName)) existing.UserLName = request.UserLName;
+            if (!string.IsNullOrEmpty(request.UserEmail)) existing.UserEmail = request.UserEmail;
+            if (!string.IsNullOrEmpty(request.UserPhoneNo)) existing.UserPhoneNo = request.UserPhoneNo;
             existing.DateUpdated = DateTime.UtcNow;
 
             // Handle password change
@@ -61,7 +61,7 @@ namespace CebuCrust_api.Services
             }
 
             await _db.SaveChangesAsync();
-            return existing;
+            return MapUser(existing);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -86,6 +86,34 @@ namespace CebuCrust_api.Services
 
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
+        }
+        private UserResponse MapUser(User u)
+        {
+            byte[]? imgData = null;
+            var folder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+            if (Directory.Exists(folder))
+            {
+                var file = Directory.GetFiles(folder, u.UserId + ".*").FirstOrDefault();
+                if (file != null)
+                    imgData = File.ReadAllBytes(file);
+                else
+                {
+                    var def = Path.Combine(folder, "default.png");
+                    if (File.Exists(def))
+                        imgData = File.ReadAllBytes(def);
+                }
+            }
+
+            return new UserResponse
+            {
+                UserId = u.UserId,
+                FirstName = u.UserFName,
+                LastName = u.UserLName,
+                Email = u.UserEmail,
+                PhoneNo = u.UserPhoneNo,
+                DateCreated = u.DateCreated,
+                ProfileImage = imgData
+            };
         }
     }
 
