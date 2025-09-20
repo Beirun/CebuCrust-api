@@ -15,6 +15,7 @@ namespace CebuCrust_api.Config
         public DbSet<Favorite> Favorites => Set<Favorite>();
         public DbSet<Cart> Carts => Set<Cart>();
         public DbSet<Rating> Ratings => Set<Rating>();
+        public DbSet<Reset> Resets => Set<Reset>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderList> OrderLists => Set<OrderList>();
 
