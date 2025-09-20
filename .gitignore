@@ -22,6 +22,9 @@ CebuCrust.db
 CebuCrust.db-shm
 CebuCrust.db-wal
 
+#Environment Variables
+.env
+
 
 # Build results
 [Dd]ebug/
