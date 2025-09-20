@@ -234,6 +234,30 @@ namespace CebuCrust_api.Migrations
                     b.ToTable("Ratings");
                 });
 
+            modelBuilder.Entity("CebuCrust_api.Models.Reset", b =>
+                {
+                    b.Property<int>("ResetId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ResetCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ResetId");
+
+                    b.ToTable("Resets");
+                });
+
             modelBuilder.Entity("CebuCrust_api.Models.Role", b =>
                 {
                     b.Property<int>("RoleId")
