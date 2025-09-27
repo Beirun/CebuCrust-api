@@ -1,38 +1,31 @@
-﻿using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Authentication;
 using CebuCrust_api.Models;
-using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
 using CebuCrust_api.ServiceModels;
-using System.IO;
-using System.Linq;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.IO;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using CebuCrust_api.Interfaces;
 
 namespace CebuCrust_api.Services
 {
     public class AccountService : IAccountService
     {
-        private readonly AppDbContext _db;
-        private readonly IConfiguration _cfg;
+        private readonly IAccountRepository _repo;
         private readonly IWebHostEnvironment _env;
-        private readonly string _jwtKey;
-        private readonly string _issuer;
-        private readonly string _audience;
+        private readonly TokenProvider _token;
 
-        public AccountService(AppDbContext db, IConfiguration cfg, IWebHostEnvironment env)
+        public AccountService(IAccountRepository repo, IConfiguration cfg, IWebHostEnvironment env)
         {
-            _db = db;
-            _cfg = cfg;
+            _repo = repo;
             _env = env;
-            _jwtKey = _cfg["Jwt:Key"]!;
-            _issuer = _cfg["Jwt:Issuer"]!;
-            _audience = _cfg["Jwt:Audience"]!;
+            var opt = JwtSettings.Load(cfg);
+            _token = new TokenProvider(opt);
         }
 
         public async Task<AuthResult> RegisterAsync(User u, string password, string confirmPassword)
@@ -40,66 +33,52 @@ namespace CebuCrust_api.Services
             if (password != confirmPassword)
                 throw new Exception("Passwords do not match");
 
-            if (await _db.Users.AnyAsync(x => x.UserEmail == u.UserEmail))
+            if (await _repo.EmailExistsAsync(u.UserEmail))
                 throw new Exception("Email already exists");
 
-            bool isFirstUser = !await _db.Users.AnyAsync();
+            bool isFirstUser = await _repo.IsFirstUserAsync();
             var roleName = isFirstUser ? "Admin" : "User";
-            var role = await _db.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName)
+            var role = await _repo.GetRoleByNameAsync(roleName)
                        ?? throw new Exception($"Role '{roleName}' not found");
 
             u.RoleId = role.RoleId;
             u.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
             u.DateCreated = DateTime.UtcNow;
-            _db.Users.Add(u);
-            await _db.SaveChangesAsync();
+
+            await _repo.AddUserAsync(u);
 
             return GenerateTokens(u);
         }
 
         public async Task<AuthResult?> LoginAsync(string email, string password)
         {
-            var u = await _db.Users.Include(r => r.Role)
-                                   .FirstOrDefaultAsync(x => x.UserEmail == email);
-            if (u == null) throw new Exception("Invalid Credentials");
-            if (!BCrypt.Net.BCrypt.Verify(password, u.PasswordHash)) throw new Exception("Incorrect Password");
+            var u = await _repo.GetUserByEmailAsync(email);
+            if (u == null || !BCrypt.Net.BCrypt.Verify(password, u.PasswordHash))
+                throw new Exception("Invalid Credentials");
 
             return GenerateTokens(u);
         }
 
         public string? Refresh(string refreshToken)
         {
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
-                handler.ValidateToken(refreshToken, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = key,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = _issuer,
-                    ValidAudience = _audience,
-                    ClockSkew = TimeSpan.Zero
-                }, out var validated);
+            var jwt = _token.Validate(refreshToken);
+            if (jwt == null) return null;
 
-                var jwt = (JwtSecurityToken)validated;
-                var uid = jwt.Subject;
-                return CreateAccessToken(int.Parse(uid), jwt.Claims);
-            }
-            catch { return null; }
+            return _token.CreateAccess(new User
+            {
+                UserId = int.Parse(jwt.Subject),
+                UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value ?? "",
+                Role = new Role
+                {
+                    RoleName = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "User"
+                }
+            });
         }
 
         private AuthResult GenerateTokens(User u)
         {
-            var access = CreateAccessToken(u.UserId, new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Email, u.UserEmail),
-                new Claim(ClaimTypes.Role, u.Role?.RoleName ?? "User")
-            });
-
-            var refresh = CreateRefreshToken(u.UserId);
+            var access = _token.CreateAccess(u);
+            var refresh = _token.CreateRefresh(u.UserId);
             return new AuthResult
             {
                 AccessToken = access,
@@ -108,47 +87,11 @@ namespace CebuCrust_api.Services
             };
         }
 
-        private string CreateAccessToken(int userId, IEnumerable<Claim> extraClaims)
-        {
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new List<Claim> { new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()) };
-            claims.AddRange(extraClaims);
-
-            var token = new JwtSecurityToken(
-                issuer: _issuer,
-                audience: _audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.Parse(_cfg["Jwt:ExpireMinutes"] ?? "60")),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private string CreateRefreshToken(int userId)
-        {
-            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_jwtKey));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-                new Claim("typ","refresh")
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _issuer,
-                audience: _audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddDays(7),
-                signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
         private UserResponse MapUser(User u)
         {
             byte[]? imgData = null;
             var folder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+
             if (Directory.Exists(folder))
             {
                 var file = Directory.GetFiles(folder, u.UserId + ".*").FirstOrDefault();
