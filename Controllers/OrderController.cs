@@ -1,11 +1,9 @@
-﻿// Controllers/OrderController.cs
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CebuCrust_api.Models;
+using System.Threading.Tasks;
 using CebuCrust_api.ServiceModels;
 using CebuCrust_api.Interfaces;
+using CebuCrust_api.Authentication;
 
 namespace CebuCrust_api.Controllers
 {
@@ -17,10 +15,11 @@ namespace CebuCrust_api.Controllers
         private readonly IOrderService _svc;
         public OrderController(IOrderService svc) => _svc = svc;
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUserId(int userId) =>
-            Ok(await _svc.GetByUserIdAsync(userId));
+        private int UserId => ClaimsHelper.GetUserId(User);
 
+        [HttpGet("me")]
+        public async Task<IActionResult> GetByUser() =>
+            Ok(await _svc.GetByUserAsync(UserId));
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -31,18 +30,8 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Create([FromBody] OrderRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var order = new Order
-            {
-                UserId = request.UserId,
-                LocationId = request.LocationId,
-                OrderInstruction = request.OrderInstruction,
-                OrderEstimate = request.OrderEstimate,
-                OrderStatus = request.OrderStatus
-            };
-
-            var created = await _svc.CreateAsync(order, request.Items);
-            return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
+            var created = await _svc.CreateAsync(UserId, request);
+            return Ok(created);
         }
 
         [HttpPut("{orderId:int}/status")]
@@ -57,6 +46,4 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Delete(int orderId) =>
             await _svc.DeleteAsync(orderId) ? NoContent() : NotFound();
     }
-
-    
 }
