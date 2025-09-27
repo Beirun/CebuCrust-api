@@ -1,49 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Interfaces;
 using CebuCrust_api.Models;
-using Microsoft.EntityFrameworkCore;
-using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
 using CebuCrust_api.ServiceModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-
     public class FavoriteService : IFavoriteService
     {
-        private readonly AppDbContext _db;
-        public FavoriteService(AppDbContext db) => _db = db;
+        private readonly IFavoriteRepository _repo;
+        public FavoriteService(IFavoriteRepository repo) => _repo = repo;
 
-        public async Task<IEnumerable<Favorite>> GetByUserIdAsync(int userId) =>
-            await _db.Favorites.Include(f => f.Pizza)
-                               .AsNoTracking()
-                               .Where(f => f.UserId == userId)
-                               .ToListAsync();
-
-        public async Task<Favorite> CreateAsync(FavoriteRequest request)
+        public async Task<IEnumerable<FavoriteResponse>> GetByUserAsync(int uid)
         {
+            var favs = await _repo.GetByUserAsync(uid);
+            return favs.Select(f => new FavoriteResponse { PizzaId = f.PizzaId });
+        }
+
+        public async Task<bool> CreateAsync(int uid, FavoriteRequest request)
+        {
+            if (await _repo.ExistsAsync(uid, request.PizzaId))
+                return false;
+
             var fav = new Favorite
             {
-                UserId = request.UserId,
+                UserId = uid,
                 PizzaId = request.PizzaId,
                 DateCreated = DateTime.UtcNow
             };
-
-            _db.Favorites.Add(fav);
-            await _db.SaveChangesAsync();
-            return fav;
+            await _repo.AddFavoriteAsync(fav);
+            return true;
         }
 
-        public async Task<bool> DeleteAsync(int userId, int pizzaId)
+        public async Task<bool> DeleteAsync(int uid, int pizzaId)
         {
-            var existing = await _db.Favorites.FindAsync(userId, pizzaId);
+            var existing = await _repo.GetFavoriteAsync(uid, pizzaId);
             if (existing == null) return false;
 
-            _db.Favorites.Remove(existing);
-            await _db.SaveChangesAsync();
+            await _repo.DeleteFavoriteAsync(existing);
             return true;
         }
     }
-    
 }
