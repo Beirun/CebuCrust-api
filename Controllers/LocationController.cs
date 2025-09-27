@@ -1,8 +1,8 @@
 ﻿using CebuCrust_api.ServiceModels;
 using CebuCrust_api.Interfaces;
+using CebuCrust_api.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace CebuCrust_api.Controllers
@@ -15,17 +15,22 @@ namespace CebuCrust_api.Controllers
         private readonly ILocationService _svc;
         public LocationController(ILocationService svc) => _svc = svc;
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUserId(int userId) =>
-            Ok(await _svc.GetByUserIdAsync(userId));
+        private int UserId => ClaimsHelper.GetUserId(User);
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetByUser()
+        {
+            var locations = await _svc.GetByUserAsync(UserId);
+            return Ok(locations);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] LocationRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var loc = await _svc.CreateAsync(request);
-            return CreatedAtAction(nameof(GetByUserId), new { userId = loc.UserId }, loc);
+            var loc = await _svc.CreateAsync(UserId, request);
+            return CreatedAtAction(nameof(GetByUser), loc);
         }
 
         [HttpPut("{id:int}")]
@@ -33,13 +38,12 @@ namespace CebuCrust_api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var updated = await _svc.UpdateAsync(id, request);
+            var updated = await _svc.UpdateAsync(UserId, id, request);
             return updated == null ? NotFound() : Ok(updated);
         }
 
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id) =>
-            await _svc.DeleteAsync(id) ? NoContent() : NotFound();
+            await _svc.DeleteAsync(UserId, id) ? NoContent() : NotFound();
     }
-
 }
