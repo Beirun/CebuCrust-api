@@ -1,9 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using CebuCrust_api.ServiceModels;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CebuCrust_api.ServiceModels;
-using CebuCrust_api.Interfaces;
-using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Controllers
 {
@@ -15,17 +15,18 @@ namespace CebuCrust_api.Controllers
         private readonly INotificationService _svc;
         public NotificationController(INotificationService svc) => _svc = svc;
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUserId(int userId) =>
-            Ok(await _svc.GetByUserIdAsync(userId));
+        private int UserId => ClaimsHelper.GetUserId(User);
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetByUser() =>
+            Ok(await _svc.GetByUserAsync(UserId));
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] NotificationRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var created = await _svc.CreateAsync(request);
-            return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
+            var created = await _svc.CreateAsync(UserId, request);
+            return Ok(created);
         }
 
         [HttpPut("{id:int}/status")]
@@ -40,6 +41,4 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Delete(int id) =>
             await _svc.DeleteAsync(id) ? NoContent() : NotFound();
     }
-
-    
 }
