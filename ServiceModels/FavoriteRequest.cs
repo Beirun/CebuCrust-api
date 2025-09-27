@@ -2,7 +2,6 @@
 {
     public class FavoriteRequest
     {
-        public int UserId { get; set; }
         public int PizzaId { get; set; }
     }
 }
