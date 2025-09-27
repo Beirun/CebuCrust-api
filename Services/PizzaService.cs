@@ -1,69 +1,73 @@
-﻿// Services/PizzaService.cs
+﻿using CebuCrust_api.Interfaces;
+using CebuCrust_api.Models;
+using CebuCrust_api.Repositories;
+using CebuCrust_api.ServiceModels;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using CebuCrust_api.Config;
-using CebuCrust_api.Interfaces;
-using CebuCrust_api.Models;
-using CebuCrust_api.ServiceModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace CebuCrust_api.Services
 {
-
     public class PizzaService : IPizzaService
     {
-        private readonly AppDbContext _db;
+        private readonly IPizzaRepository _repo;
         private readonly IWebHostEnvironment _env;
 
-        public PizzaService(AppDbContext db, IWebHostEnvironment env)
+        public PizzaService(IPizzaRepository repo, IWebHostEnvironment env)
         {
-            _db = db;
+            _repo = repo;
             _env = env;
         }
 
-        public async Task<Pizza> CreateAsync(Pizza p)
+        public async Task<PizzaResponse> CreateAsync(PizzaRequest request)
         {
-            p.DateCreated = DateTime.UtcNow;
-            _db.Pizzas.Add(p);
-            await _db.SaveChangesAsync();
-            return p;
+            var p = new Pizza
+            {
+                PizzaName = request.PizzaName,
+                PizzaDescription = request.PizzaDescription,
+                PizzaCategory = request.PizzaCategory,
+                PizzaPrice = request.PizzaPrice,
+                DateCreated = DateTime.UtcNow
+            };
+
+            p = await _repo.AddAsync(p);
+            return await GetByIdAsync(p.PizzaId);
         }
 
-        public async Task<Pizza?> UpdateAsync(int id, Pizza p)
+        public async Task<PizzaResponse?> UpdateAsync(int id, PizzaRequest request)
         {
-            var e = await _db.Pizzas.FindAsync(id);
-            if (e == null) return null;
+            var p = await _repo.GetByIdAsync(id);
+            if (p == null) return null;
 
-            e.PizzaName = p.PizzaName;
-            e.PizzaDescription = p.PizzaDescription;
-            e.PizzaCategory = p.PizzaCategory;
-            e.PizzaPrice = p.PizzaPrice;
-            e.DateUpdated = DateTime.UtcNow;
+            p.PizzaName = request.PizzaName;
+            p.PizzaDescription = request.PizzaDescription;
+            p.PizzaCategory = request.PizzaCategory;
+            p.PizzaPrice = request.PizzaPrice;
+            p.DateUpdated = DateTime.UtcNow;
 
-            await _db.SaveChangesAsync();
-            return e;
+            await _repo.UpdateAsync(p);
+            return await GetByIdAsync(id);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var e = await _db.Pizzas.FindAsync(id);
-            if (e == null) return false;
-
-            _db.Pizzas.Remove(e);
-            await _db.SaveChangesAsync();
-            return true;
+            var p = await _repo.GetByIdAsync(id);
+            if (p == null) return false;
+            return await _repo.DeleteAsync(p);
         }
 
         public async Task<IEnumerable<PizzaResponse>> GetAllAsync()
         {
-            var pizzas = await _db.Pizzas.AsNoTracking().ToListAsync();
-            return pizzas.ConvertAll(p => ToResponse(p));
+            var pizzas = await _repo.GetAllAsync();
+            return pizzas.Select(p => ToResponse(p));
         }
 
         public async Task<PizzaResponse?> GetByIdAsync(int id)
         {
-            var pizza = await _db.Pizzas.AsNoTracking().FirstOrDefaultAsync(p => p.PizzaId == id);
+            var pizza = await _repo.GetByIdAsync(id);
             return pizza == null ? null : ToResponse(pizza);
         }
 
@@ -87,6 +91,7 @@ namespace CebuCrust_api.Services
                 pizzaImage = imgData
             };
         }
+
         public async Task SaveImageAsync(int pizzaId, IFormFile file)
         {
             if (file == null || file.Length == 0) return;
@@ -94,12 +99,11 @@ namespace CebuCrust_api.Services
             var pizzasFolder = Path.Combine(_env.ContentRootPath, "Resources", "Pizzas");
             if (!Directory.Exists(pizzasFolder)) Directory.CreateDirectory(pizzasFolder);
 
-            var ext = Path.GetExtension(file.FileName); // preserve extension
+            var ext = Path.GetExtension(file.FileName);
             var filePath = Path.Combine(pizzasFolder, pizzaId + ext);
 
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
         }
     }
-
 }
