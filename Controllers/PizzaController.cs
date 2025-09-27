@@ -1,8 +1,6 @@
-﻿// Controllers/PizzaController.cs
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CebuCrust_api.Models;
 using CebuCrust_api.ServiceModels;
 using CebuCrust_api.Interfaces;
 
@@ -10,7 +8,7 @@ namespace CebuCrust_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] // all endpoints require a valid JWT
+    [Authorize]
     public class PizzaController : ControllerBase
     {
         private readonly IPizzaService _svc;
@@ -33,15 +31,7 @@ namespace CebuCrust_api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var pizza = new Pizza
-            {
-                PizzaName = request.PizzaName,
-                PizzaDescription = request.PizzaDescription,
-                PizzaCategory = request.PizzaCategory,
-                PizzaPrice = request.PizzaPrice
-            };
-
-            var created = await _svc.CreateAsync(pizza);
+            var created = await _svc.CreateAsync(request);
 
             if (request.Image != null)
                 await _svc.SaveImageAsync(created.PizzaId, request.Image);
@@ -53,16 +43,7 @@ namespace CebuCrust_api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromForm] PizzaRequest request)
         {
-            var pizza = new Pizza
-            {
-                PizzaName = request.PizzaName,
-                PizzaDescription = request.PizzaDescription,
-                PizzaCategory = request.PizzaCategory,
-                PizzaPrice = request.PizzaPrice
-            };
-
-            var updated = await _svc.UpdateAsync(id, pizza);
-
+            var updated = await _svc.UpdateAsync(id, request);
             if (updated == null) return NotFound();
 
             if (request.Image != null)
@@ -72,7 +53,7 @@ namespace CebuCrust_api.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "Admin")] // only Admin can delete
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id) =>
             await _svc.DeleteAsync(id) ? NoContent() : NotFound();
     }
