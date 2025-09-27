@@ -1,8 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using CebuCrust_api.ServiceModels;
+using CebuCrust_api.Interfaces;
+using CebuCrust_api.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using CebuCrust_api.ServiceModels;
-using CebuCrust_api.Interfaces;
+using System.Threading.Tasks;
 
 namespace CebuCrust_api.Controllers
 {
@@ -14,17 +15,19 @@ namespace CebuCrust_api.Controllers
         private readonly ICartService _svc;
         public CartController(ICartService svc) => _svc = svc;
 
-        [HttpGet("user/{userId:int}")]
-        public async Task<IActionResult> GetByUserId(int userId) =>
-            Ok(await _svc.GetByUserIdAsync(userId));
+        private int UserId => ClaimsHelper.GetUserId(User);
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetByUser() =>
+            Ok(await _svc.GetByUserAsync(UserId));
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CartRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var created = await _svc.CreateAsync(request.UserId, request.PizzaId, request.Quantity);
-            return CreatedAtAction(nameof(GetByUserId), new { userId = created.UserId }, created);
+            var created = await _svc.CreateAsync(UserId, request);
+            return Ok(created);
         }
 
         [HttpPut]
@@ -32,14 +35,12 @@ namespace CebuCrust_api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var updated = await _svc.UpdateAsync(request.UserId, request.PizzaId, request.Quantity);
+            var updated = await _svc.UpdateAsync(UserId, request);
             return updated == null ? NotFound() : Ok(updated);
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] CartRequest request) =>
-            await _svc.DeleteAsync(request.UserId, request.PizzaId) ? NoContent() : NotFound();
+        [HttpDelete("{pizzaId:int}")]
+        public async Task<IActionResult> Delete(int pizzaId) =>
+            await _svc.DeleteAsync(UserId, pizzaId) ? NoContent() : NotFound();
     }
-
-    
 }
