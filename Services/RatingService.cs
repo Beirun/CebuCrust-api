@@ -1,69 +1,78 @@
-﻿using CebuCrust_api.Config;
-using CebuCrust_api.Controllers;
+﻿using CebuCrust_api.Interfaces;
 using CebuCrust_api.Models;
-using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
 using CebuCrust_api.ServiceModels;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
     public class RatingService : IRatingService
     {
-        private readonly AppDbContext _db;
-        public RatingService(AppDbContext db) => _db = db;
+        private readonly IRatingRepository _repo;
+        public RatingService(IRatingRepository repo) => _repo = repo;
 
-        public async Task<IEnumerable<Rating>> GetAllAsync() =>
-            await _db.Ratings.Include(r => r.User)
-                             .Include(r => r.Pizza)
-                             .AsNoTracking()
-                             .ToListAsync();
+        private RatingResponse ToResponse(Rating r) => new RatingResponse
+        {
+            UserId = r.UserId,
+            PizzaId = r.PizzaId,
+            RatingValue = r.RatingValue,
+            RatingMessage = r.RatingMessage
+        };
 
-        public async Task<Rating?> GetByIdAsync(int id) =>
-            await _db.Ratings.Include(r => r.User)
-                             .Include(r => r.Pizza)
-                             .AsNoTracking()
-                             .FirstOrDefaultAsync(r => r.RatingId == id);
+        public async Task<IEnumerable<RatingResponse>> GetAllAsync()
+        {
+            var ratings = await _repo.GetAllAsync();
+            return ratings.Select(r => ToResponse(r));
+        }
 
-        public async Task<Rating> CreateAsync(RatingRequest request)
+        public async Task<RatingResponse?> GetByIdAsync(int id)
+        {
+            var r = await _repo.GetByIdAsync(id);
+            return r == null ? null : ToResponse(r);
+        }
+
+        public async Task<IEnumerable<RatingResponse>> GetByPizzaIdAsync(int pizzaId)
+        {
+            var ratings = await _repo.GetByPizzaIdAsync(pizzaId);
+            return ratings.Select(r => ToResponse(r));
+        }
+
+        public async Task<RatingResponse> CreateAsync(int userId, RatingRequest request)
         {
             var r = new Rating
             {
-                UserId = request.UserId,
+                UserId = userId,
                 PizzaId = request.PizzaId,
                 RatingValue = request.RatingValue,
                 RatingMessage = request.RatingMessage,
                 DateCreated = DateTime.UtcNow
             };
-
-            _db.Ratings.Add(r);
-            await _db.SaveChangesAsync();
-            return r;
+            await _repo.AddAsync(r);
+            return ToResponse(r);
         }
 
-        public async Task<Rating?> UpdateAsync(int id, RatingRequest request)
+        public async Task<RatingResponse?> UpdateAsync(int id, RatingRequest request)
         {
-            var existing = await _db.Ratings.FindAsync(id);
+            var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return null;
 
             existing.RatingValue = request.RatingValue;
             existing.RatingMessage = request.RatingMessage;
             existing.DateUpdated = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
-            return existing;
+
+            await _repo.UpdateAsync(existing);
+            return ToResponse(existing);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var existing = await _db.Ratings.FindAsync(id);
+            var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return false;
 
-            _db.Ratings.Remove(existing);
-            await _db.SaveChangesAsync();
-            return true;
+            return await _repo.DeleteAsync(existing);
         }
     }
-   
 }
