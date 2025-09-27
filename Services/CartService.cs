@@ -1,7 +1,7 @@
-﻿using CebuCrust_api.Config;
+﻿using CebuCrust_api.Interfaces;
 using CebuCrust_api.Models;
-using Microsoft.EntityFrameworkCore;
-using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
+using CebuCrust_api.ServiceModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,54 +9,57 @@ using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-    
-
     public class CartService : ICartService
     {
-        private readonly AppDbContext _db;
-        public CartService(AppDbContext db) => _db = db;
+        private readonly ICartRepository _repo;
+        public CartService(ICartRepository repo) => _repo = repo;
 
-        public async Task<IEnumerable<Cart>> GetByUserIdAsync(int userId) =>
-            await _db.Carts.Include(c => c.Pizza)
-                           .AsNoTracking()
-                           .Where(c => c.UserId == userId)
-                           .ToListAsync();
-
-        public async Task<Cart> CreateAsync(int userId, int pizzaId, int quantity)
+        public async Task<IEnumerable<CartResponse>> GetByUserAsync(int uid)
         {
+            var carts = await _repo.GetByUserAsync(uid);
+            return carts.Select(c => new CartResponse { PizzaId = c.PizzaId, Quantity = c.Quantity });
+        }
+
+        public async Task<CartResponse> CreateAsync(int uid, CartRequest request)
+        {
+            var existing = await _repo.GetCartItemAsync(uid, request.PizzaId);
+            if (existing != null)
+            {
+                existing.Quantity += request.Quantity;
+                existing.DateUpdated = DateTime.UtcNow;
+                await _repo.UpdateCartAsync(existing);
+                return new CartResponse { PizzaId = existing.PizzaId, Quantity = existing.Quantity };
+            }
+
             var cart = new Cart
             {
-                UserId = userId,
-                PizzaId = pizzaId,
-                Quantity = quantity,
+                UserId = uid,
+                PizzaId = request.PizzaId,
+                Quantity = request.Quantity,
                 DateCreated = DateTime.UtcNow
             };
-
-            _db.Carts.Add(cart);
-            await _db.SaveChangesAsync();
-            return cart;
+            await _repo.AddCartAsync(cart);
+            return new CartResponse { PizzaId = cart.PizzaId, Quantity = cart.Quantity };
         }
 
-        public async Task<Cart?> UpdateAsync(int userId, int pizzaId, int quantity)
+        public async Task<CartResponse?> UpdateAsync(int uid, CartRequest request)
         {
-            var existing = await _db.Carts.FindAsync(pizzaId, userId);
+            var existing = await _repo.GetCartItemAsync(uid, request.PizzaId);
             if (existing == null) return null;
 
-            existing.Quantity = quantity;
+            existing.Quantity = request.Quantity;
             existing.DateUpdated = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
-            return existing;
+            await _repo.UpdateCartAsync(existing);
+            return new CartResponse { PizzaId = existing.PizzaId, Quantity = existing.Quantity };
         }
 
-        public async Task<bool> DeleteAsync(int userId, int pizzaId)
+        public async Task<bool> DeleteAsync(int uid, int pizzaId)
         {
-            var existing = await _db.Carts.FindAsync(pizzaId, userId);
+            var existing = await _repo.GetCartItemAsync(uid, pizzaId);
             if (existing == null) return false;
 
-            _db.Carts.Remove(existing);
-            await _db.SaveChangesAsync();
+            await _repo.DeleteCartAsync(existing);
             return true;
         }
     }
-    
 }
