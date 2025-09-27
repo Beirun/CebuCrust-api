@@ -1,79 +1,121 @@
-﻿// Services/OrderService.cs
-using CebuCrust_api.Controllers;
-using CebuCrust_api.Config;
+﻿using CebuCrust_api.Interfaces;
 using CebuCrust_api.Models;
-using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
 using CebuCrust_api.ServiceModels;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CebuCrust_api.Services
 {
-
     public class OrderService : IOrderService
     {
-        private readonly AppDbContext _db;
-        public OrderService(AppDbContext db) => _db = db;
+        private readonly IOrderRepository _repo;
+        public OrderService(IOrderRepository repo) => _repo = repo;
 
-        public async Task<IEnumerable<Order>> GetByUserIdAsync(int userId) =>
-            await _db.Orders.Include(o => o.Location)
-                            .Include(o => o.OrderLists).ThenInclude(ol => ol.Pizza)
-                            .AsNoTracking()
-                            .Where(o => o.UserId == userId)
-                            .ToListAsync();
-
-        public async Task<IEnumerable<Order>> GetAllAsync() =>
-            await _db.Orders.Include(o => o.Location)
-                            .Include(o => o.OrderLists).ThenInclude(ol => ol.Pizza)
-                            .Include(o => o.User)
-                            .AsNoTracking()
-                            .ToListAsync();
-
-        public async Task<Order> CreateAsync(Order order, IEnumerable<OrderItemRequest> items)
+        public async Task<IEnumerable<OrderResponse>> GetByUserAsync(int uid)
         {
-            order.DateCreated = DateTime.UtcNow;
-            _db.Orders.Add(order);
-            await _db.SaveChangesAsync();
-
-            // Map OrderItemRequest to OrderList internally
-            foreach (var item in items)
+            var orders = await _repo.GetByUserAsync(uid);
+            return orders.Select(o => new OrderResponse
             {
-                var orderList = new OrderList
+                OrderId = o.OrderId,
+                LocationId = o.LocationId,
+                OrderInstruction = o.OrderInstruction,
+                OrderStatus = o.OrderStatus,
+                OrderEstimate = o.OrderEstimate,
+                Items = o.OrderLists.Select(ol => new OrderItemResponse
                 {
-                    OrderId = order.OrderId,
-                    PizzaId = item.PizzaId,
-                    Quantity = item.Quantity
-                };
-                _db.OrderLists.Add(orderList);
-            }
-
-            await _db.SaveChangesAsync();
-            return order;
+                    PizzaId = ol.PizzaId,
+                    Quantity = ol.Quantity
+                }).ToList()
+            });
         }
 
-        public async Task<Order?> UpdateStatusAsync(int orderId, string status)
+        public async Task<IEnumerable<OrderResponse>> GetAllAsync()
         {
-            var existing = await _db.Orders.FindAsync(orderId);
+            var orders = await _repo.GetAllAsync();
+            return orders.Select(o => new OrderResponse
+            {
+                OrderId = o.OrderId,
+                LocationId = o.LocationId,
+                OrderInstruction = o.OrderInstruction,
+                OrderStatus = o.OrderStatus,
+                OrderEstimate = o.OrderEstimate,
+                Items = o.OrderLists.Select(ol => new OrderItemResponse
+                {
+                    PizzaId = ol.PizzaId,
+                    Quantity = ol.Quantity
+                }).ToList()
+            });
+        }
+
+        public async Task<OrderResponse> CreateAsync(int uid, OrderRequest request)
+        {
+            var order = new Order
+            {
+                UserId = uid,
+                LocationId = request.LocationId,
+                OrderInstruction = request.OrderInstruction,
+                OrderStatus = request.OrderStatus,
+                OrderEstimate = request.OrderEstimate,
+                DateCreated = DateTime.UtcNow
+            };
+
+            var items = request.Items.Select(i => new OrderList
+            {
+                OrderId = order.OrderId, // EF will generate ID after SaveChanges, so may need to Save first
+                PizzaId = i.PizzaId,
+                Quantity = i.Quantity
+            }).ToList();
+
+            await _repo.AddOrderAsync(order, items);
+
+            return new OrderResponse
+            {
+                OrderId = order.OrderId,
+                LocationId = order.LocationId,
+                OrderInstruction = order.OrderInstruction,
+                OrderStatus = order.OrderStatus,
+                OrderEstimate = order.OrderEstimate,
+                Items = items.Select(i => new OrderItemResponse
+                {
+                    PizzaId = i.PizzaId,
+                    Quantity = i.Quantity
+                }).ToList()
+            };
+        }
+
+        public async Task<OrderResponse?> UpdateStatusAsync(int orderId, string status)
+        {
+            var existing = await _repo.GetByIdAsync(orderId);
             if (existing == null) return null;
 
             existing.OrderStatus = status;
-            await _db.SaveChangesAsync();
-            return existing;
+            await _repo.UpdateOrderAsync(existing);
+
+            var items = await _repo.GetOrderItemsAsync(orderId);
+            return new OrderResponse
+            {
+                OrderId = existing.OrderId,
+                LocationId = existing.LocationId,
+                OrderInstruction = existing.OrderInstruction,
+                OrderStatus = existing.OrderStatus,
+                OrderEstimate = existing.OrderEstimate,
+                Items = items.Select(i => new OrderItemResponse
+                {
+                    PizzaId = i.PizzaId,
+                    Quantity = i.Quantity
+                }).ToList()
+            };
         }
 
         public async Task<bool> DeleteAsync(int orderId)
         {
-            var existing = await _db.Orders.FindAsync(orderId);
+            var existing = await _repo.GetByIdAsync(orderId);
             if (existing == null) return false;
 
-            // Remove related OrderLists first
-            var items = await _db.OrderLists.Where(ol => ol.OrderId == orderId).ToListAsync();
-            _db.OrderLists.RemoveRange(items);
-
-            _db.Orders.Remove(existing);
-            await _db.SaveChangesAsync();
+            await _repo.DeleteOrderAsync(existing);
             return true;
         }
     }
