@@ -2,9 +2,7 @@
 {
     public class NotificationRequest
     {
-        public int UserId { get; set; }
-
-        public string NotificationMessage { get; set; } = "";
+        public string? NotificationMessage { get; set; }
 
         public string? NotificationStatus { get; set; }
     }
