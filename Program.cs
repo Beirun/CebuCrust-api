@@ -1,6 +1,7 @@
 using CebuCrust_api.Config;
-using CebuCrust_api.Services;
 using CebuCrust_api.Interfaces;
+using CebuCrust_api.Repositories;
+using CebuCrust_api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -56,6 +57,21 @@ builder.Services.AddAuthorization();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connStr));
 
+
+// Repositories
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IPizzaRepository, PizzaRepository>();
+builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+builder.Services.AddScoped<IResetRepository, ResetRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+
+
 // Add services
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -65,9 +81,11 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPizzaService, PizzaService>();
-builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IResetService, ResetService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+
 
 // Add controllers
 builder.Services.AddControllers();
