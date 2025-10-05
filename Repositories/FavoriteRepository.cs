@@ -15,8 +15,7 @@ namespace CebuCrust_api.Repositories
         public FavoriteRepository(AppDbContext db) => _db = db;
 
         public async Task<List<Favorite>> GetByUserAsync(int uid) =>
-            await _db.Favorites.AsNoTracking()
-                               .Where(f => f.UserId == uid)
+            await _db.Favorites.Where(f => f.UserId == uid)
                                .ToListAsync();
 
         public async Task<bool> ExistsAsync(int uid, int pizzaId) =>
