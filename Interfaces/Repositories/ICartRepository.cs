@@ -7,6 +7,6 @@ namespace CebuCrust_api.Interfaces
         Task<Cart?> GetCartItemAsync(int uid, int pizzaId);
         Task AddCartAsync(Cart cart);
         Task UpdateCartAsync(Cart cart);
-        Task DeleteCartAsync(Cart cart);
+        Task DeleteCartItemAsync(Cart cart);
     }
 }
