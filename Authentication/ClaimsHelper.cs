@@ -14,12 +14,21 @@ namespace CebuCrust_api.Authentication
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
 
-            var val = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            // Debug: print all claims
+            Console.WriteLine("Claims in token:");
+            foreach (var claim in user.Claims)
+            {
+                Console.WriteLine($"{claim.Type} : {claim.Value}");
+            }
+
+            var val = user.FindFirstValue(ClaimTypes.NameIdentifier); 
+
             if (string.IsNullOrEmpty(val))
                 throw new InvalidOperationException("User ID claim missing in token");
 
-            return int.Parse(val); // adjust if your ID is a Guid
+            return int.Parse(val);
         }
+
 
         /// <summary>
         /// Retrieves the role of the current user from the ClaimsPrincipal.
