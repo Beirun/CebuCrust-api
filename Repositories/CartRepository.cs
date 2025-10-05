@@ -34,7 +34,7 @@ namespace CebuCrust_api.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task DeleteCartAsync(Cart cart)
+        public async Task DeleteCartItemAsync(Cart cart)
         {
             _db.Carts.Remove(cart);
             await _db.SaveChangesAsync();
