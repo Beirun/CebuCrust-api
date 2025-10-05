@@ -41,6 +41,10 @@ namespace CebuCrust_api.Controllers
 
         [HttpDelete("{pizzaId:int}")]
         public async Task<IActionResult> Delete(int pizzaId) =>
-            await _svc.DeleteAsync(UserId, pizzaId) ? NoContent() : NotFound();
+            await _svc.DeleteCartItemAsync(UserId, pizzaId) ? NoContent() : NotFound();
+            
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAll() =>
+            await _svc.DeleteCartAsync(UserId) ? NoContent() : NotFound();
     }
 }
