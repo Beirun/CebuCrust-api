@@ -16,6 +16,7 @@ namespace CebuCrust_api.Services
 
         public async Task<IEnumerable<FavoriteResponse>> GetByUserAsync(int uid)
         {
+            Console.WriteLine($"Id: {uid}");
             var favs = await _repo.GetByUserAsync(uid);
             return favs.Select(f => new FavoriteResponse { PizzaId = f.PizzaId });
         }
