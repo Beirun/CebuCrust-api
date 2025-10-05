@@ -29,12 +29,13 @@ namespace CebuCrust_api.Services
                 PizzaName = request.PizzaName,
                 PizzaDescription = request.PizzaDescription,
                 PizzaCategory = request.PizzaCategory,
+                IsAvailable = true,
                 PizzaPrice = request.PizzaPrice,
                 DateCreated = DateTime.UtcNow
             };
 
             p = await _repo.AddAsync(p);
-            return await GetByIdAsync(p.PizzaId);
+            return await GetByIdAsync(p.PizzaId) ?? new PizzaResponse();
         }
 
         public async Task<PizzaResponse?> UpdateAsync(int id, PizzaRequest request)
@@ -47,7 +48,7 @@ namespace CebuCrust_api.Services
             p.PizzaCategory = request.PizzaCategory;
             p.PizzaPrice = request.PizzaPrice;
             p.DateUpdated = DateTime.UtcNow;
-
+            p.IsAvailable = request.IsAvailable;
             await _repo.UpdateAsync(p);
             return await GetByIdAsync(id);
         }
@@ -85,8 +86,9 @@ namespace CebuCrust_api.Services
             {
                 PizzaId = p.PizzaId,
                 PizzaName = p.PizzaName,
-                PizzaDescription = p.PizzaDescription,
-                PizzaCategory = p.PizzaCategory,
+                PizzaDescription = p.PizzaDescription ?? "",
+                PizzaCategory = p.PizzaCategory ?? "",
+                IsAvailable = p.IsAvailable,
                 PizzaPrice = p.PizzaPrice,
                 pizzaImage = imgData
             };
