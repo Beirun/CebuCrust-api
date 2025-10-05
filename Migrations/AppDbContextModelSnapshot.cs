@@ -180,8 +180,14 @@ namespace CebuCrust_api.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DateDeleted")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("PizzaCategory")
                         .HasColumnType("TEXT");
