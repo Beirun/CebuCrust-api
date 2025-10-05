@@ -10,7 +10,9 @@ namespace CebuCrust_api.Interfaces
         Task<IEnumerable<CartResponse>> GetByUserAsync(int userId);
         Task<CartResponse> CreateAsync(int userId, CartRequest request);
         Task<CartResponse?> UpdateAsync(int userId, CartRequest request);
-        Task<bool> DeleteAsync(int userId, int pizzaId);
+        Task<bool> DeleteCartItemAsync(int userId, int pizzaId);
+        Task<bool> DeleteCartAsync(int userId);
+        
 
     }
 }
