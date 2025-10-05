@@ -53,12 +53,24 @@ namespace CebuCrust_api.Services
             return new CartResponse { PizzaId = existing.PizzaId, Quantity = existing.Quantity };
         }
 
-        public async Task<bool> DeleteAsync(int uid, int pizzaId)
+        public async Task<bool> DeleteCartItemAsync(int uid, int pizzaId)
         {
             var existing = await _repo.GetCartItemAsync(uid, pizzaId);
             if (existing == null) return false;
 
-            await _repo.DeleteCartAsync(existing);
+            await _repo.DeleteCartItemAsync(existing);
+            return true;
+        }
+
+        public async Task<bool> DeleteCartAsync(int uid)
+        {
+            var carts = await _repo.GetByUserAsync(uid);
+            if (carts == null || !carts.Any()) return false;
+
+            foreach (var cart in carts)
+            {
+                await _repo.DeleteCartItemAsync(cart);
+            }
             return true;
         }
     }
