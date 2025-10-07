@@ -16,7 +16,7 @@ namespace CebuCrust_api.Repositories
 
         public async Task<List<Notification>> GetByUserAsync(int uid) =>
             await _db.Notifications.AsNoTracking()
-                                   .Where(n => n.UserId == uid)
+                                   .Where(n => n.UserId == uid && n.DateDeleted == null)
                                    .ToListAsync();
 
         public async Task<Notification?> GetByIdAsync(int id) =>
