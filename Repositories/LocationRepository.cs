@@ -16,11 +16,11 @@ namespace CebuCrust_api.Repositories
 
         public async Task<List<Location>> GetByUserAsync(int uid) =>
             await _db.Locations.AsNoTracking()
-                               .Where(l => l.UserId == uid)
+                               .Where(l => l.UserId == uid && l.DateDeleted == null)
                                .ToListAsync();
 
         public async Task<Location?> GetByIdAsync(int uid, int id) =>
-            await _db.Locations.FirstOrDefaultAsync(l => l.LocationId == id && l.UserId == uid);
+            await _db.Locations.FirstOrDefaultAsync(l => l.LocationId == id && l.UserId == uid && l.DateDeleted == null);
 
         public async Task AddLocationAsync(Location loc)
         {
@@ -36,7 +36,8 @@ namespace CebuCrust_api.Repositories
 
         public async Task DeleteLocationAsync(Location loc)
         {
-            _db.Locations.Remove(loc);
+            loc.DateDeleted = DateTime.UtcNow;
+            _db.Locations.Update(loc);
             await _db.SaveChangesAsync();
         }
     }
