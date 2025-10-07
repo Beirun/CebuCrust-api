@@ -47,8 +47,8 @@ namespace CebuCrust_api.Services
             p.PizzaDescription = request.PizzaDescription;
             p.PizzaCategory = request.PizzaCategory;
             p.PizzaPrice = request.PizzaPrice;
-            p.DateUpdated = DateTime.UtcNow;
             p.IsAvailable = request.IsAvailable;
+            p.DateUpdated = DateTime.UtcNow;
             await _repo.UpdateAsync(p);
             return await GetByIdAsync(id);
         }
