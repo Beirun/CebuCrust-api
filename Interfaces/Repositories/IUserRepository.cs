@@ -7,6 +7,6 @@ namespace CebuCrust_api.Interfaces
         Task<List<User>> GetAllAsync();
         Task<User?> GetByIdAsync(int id);
         Task UpdateAsync(User u);
-        Task<bool> SoftDeleteAsync(User u);
+        Task<bool> DeleteAsync(User u);
     }
 }
