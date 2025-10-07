@@ -23,7 +23,9 @@ namespace CebuCrust_api.Services
                 LocationCity = l.LocationCity,
                 LocationBrgy = l.LocationBrgy,
                 LocationStreet = l.LocationStreet,
-                LocationHouseNo = l.LocationHouseNo
+                LocationHouseNo = l.LocationHouseNo,
+                LocationPostal = l.LocationPostal ?? "",
+                LocationLandmark = l.LocationLandmark ?? ""
             });
         }
 
@@ -32,10 +34,12 @@ namespace CebuCrust_api.Services
             var loc = new Location
             {
                 UserId = uid,
-                LocationCity = request.LocationCity,
+                LocationCity = request.LocationCity ?? "",
                 LocationBrgy = request.LocationBrgy,
                 LocationStreet = request.LocationStreet,
                 LocationHouseNo = request.LocationHouseNo,
+                LocationPostal = request.LocationPostal ?? "",
+                LocationLandmark = request.LocationLandmark ?? "",
                 DateCreated = DateTime.UtcNow
             };
             await _repo.AddLocationAsync(loc);
@@ -46,7 +50,9 @@ namespace CebuCrust_api.Services
                 LocationCity = loc.LocationCity,
                 LocationBrgy = loc.LocationBrgy,
                 LocationStreet = loc.LocationStreet,
-                LocationHouseNo = loc.LocationHouseNo
+                LocationHouseNo = loc.LocationHouseNo,
+                LocationPostal = loc.LocationPostal ?? "",
+                LocationLandmark = loc.LocationLandmark ?? ""
             };
         }
 
@@ -55,10 +61,12 @@ namespace CebuCrust_api.Services
             var existing = await _repo.GetByIdAsync(uid, id);
             if (existing == null) return null;
 
-            existing.LocationCity = request.LocationCity;
+            existing.LocationCity = request.LocationCity ?? "";
             existing.LocationBrgy = request.LocationBrgy;
             existing.LocationStreet = request.LocationStreet;
             existing.LocationHouseNo = request.LocationHouseNo;
+            if(!String.IsNullOrEmpty(request.LocationPostal)) existing.LocationPostal = request.LocationPostal;
+            if(!String.IsNullOrEmpty(request.LocationLandmark)) existing.LocationLandmark = request.LocationLandmark;
             existing.DateUpdated = DateTime.UtcNow;
 
             await _repo.UpdateLocationAsync(existing);
@@ -69,7 +77,9 @@ namespace CebuCrust_api.Services
                 LocationCity = existing.LocationCity,
                 LocationBrgy = existing.LocationBrgy,
                 LocationStreet = existing.LocationStreet,
-                LocationHouseNo = existing.LocationHouseNo
+                LocationHouseNo = existing.LocationHouseNo,
+                LocationPostal = existing.LocationPostal ?? "",
+                LocationLandmark = existing.LocationLandmark ?? ""
             };
         }
 
@@ -77,7 +87,6 @@ namespace CebuCrust_api.Services
         {
             var existing = await _repo.GetByIdAsync(uid, id);
             if (existing == null) return false;
-
             await _repo.DeleteLocationAsync(existing);
             return true;
         }
