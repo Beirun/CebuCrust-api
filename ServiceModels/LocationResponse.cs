@@ -7,6 +7,7 @@
         public string? LocationBrgy { get; set; }
         public string? LocationStreet { get; set; }
         public string? LocationHouseNo { get; set; }
-
+        public string? LocationPostal { get; set; }
+        public string? LocationLandmark { get; set; }   
     }
 }
