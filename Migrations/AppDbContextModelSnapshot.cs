@@ -68,6 +68,9 @@ namespace CebuCrust_api.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DateDeleted")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
 
@@ -79,6 +82,12 @@ namespace CebuCrust_api.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LocationHouseNo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LocationLandmark")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LocationPostal")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LocationStreet")
@@ -101,6 +110,12 @@ namespace CebuCrust_api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateDeleted")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NotificationMessage")
@@ -127,6 +142,9 @@ namespace CebuCrust_api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("LocationId")
@@ -214,6 +232,9 @@ namespace CebuCrust_api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateDeleted")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DateUpdated")
