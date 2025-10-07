@@ -14,13 +14,6 @@ namespace CebuCrust_api.Authentication
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
 
-            // Debug: print all claims
-            Console.WriteLine("Claims in token:");
-            foreach (var claim in user.Claims)
-            {
-                Console.WriteLine($"{claim.Type} : {claim.Value}");
-            }
-
             var val = user.FindFirstValue(ClaimTypes.NameIdentifier); 
 
             if (string.IsNullOrEmpty(val))
