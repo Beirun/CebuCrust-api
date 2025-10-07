@@ -13,8 +13,11 @@ namespace CebuCrust_api.Models
         public string? LocationBrgy { get; set; }
         public string? LocationStreet { get; set; }
         public string? LocationHouseNo { get; set; }
+        public string? LocationPostal { get; set; }
+        public string? LocationLandmark { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public DateTime? DateUpdated { get; set; }
+        public DateTime? DateDeleted { get; set; }
 
         public User User { get; set; } = null!;
         public ICollection<Order> Orders { get; set; } = new List<Order>();
