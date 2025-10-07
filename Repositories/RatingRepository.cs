@@ -14,14 +14,14 @@ namespace CebuCrust_api.Repositories
         public RatingRepository(AppDbContext db) => _db = db;
 
         public async Task<List<Rating>> GetAllAsync() =>
-            await _db.Ratings.AsNoTracking().ToListAsync();
+            await _db.Ratings.AsNoTracking().Where(r => r.DateDeleted == null).ToListAsync();
 
         public async Task<Rating?> GetByIdAsync(int id) =>
-            await _db.Ratings.AsNoTracking().FirstOrDefaultAsync(r => r.RatingId == id);
+            await _db.Ratings.AsNoTracking().FirstOrDefaultAsync(r => r.RatingId == id && r.DateDeleted == null);
 
         public async Task<List<Rating>> GetByPizzaIdAsync(int pizzaId) =>
             await _db.Ratings.AsNoTracking()
-                             .Where(r => r.PizzaId == pizzaId)
+                             .Where(r => r.PizzaId == pizzaId && r.DateDeleted == null)
                              .ToListAsync();
 
         public async Task<Rating> AddAsync(Rating r)
@@ -40,7 +40,8 @@ namespace CebuCrust_api.Repositories
 
         public async Task<bool> DeleteAsync(Rating r)
         {
-            _db.Ratings.Remove(r);
+            r.DateDeleted = DateTime.UtcNow;
+            _db.Ratings.Update(r);
             await _db.SaveChangesAsync();
             return true;
         }
