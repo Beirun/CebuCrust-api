@@ -30,7 +30,7 @@ namespace CebuCrust_api.Services
             var n = new Notification
             {
                 UserId = uid,
-                NotificationMessage = request.NotificationMessage,
+                NotificationMessage = request.NotificationMessage ?? "",
                 NotificationStatus = request.NotificationStatus,
                 DateCreated = DateTime.UtcNow
             };
@@ -50,6 +50,7 @@ namespace CebuCrust_api.Services
             if (existing == null) return null;
 
             existing.NotificationStatus = status;
+            existing.DateUpdated = DateTime.UtcNow;
             await _repo.UpdateNotificationAsync(existing);
 
             return new NotificationResponse
