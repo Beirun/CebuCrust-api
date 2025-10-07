@@ -14,6 +14,7 @@ namespace CebuCrust_api.Models
         public string? OrderStatus { get; set; }
         public string? OrderEstimate { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public DateTime? DateUpdated { get; set; }
 
         public User User { get; set; } = null!;
         public Location Location { get; set; } = null!;
