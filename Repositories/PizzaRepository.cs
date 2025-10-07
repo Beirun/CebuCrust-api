@@ -15,10 +15,10 @@ namespace CebuCrust_api.Repositories
         public PizzaRepository(AppDbContext db) => _db = db;
 
         public async Task<List<Pizza>> GetAllAsync() =>
-            await _db.Pizzas.AsNoTracking().ToListAsync();
+            await _db.Pizzas.AsNoTracking().Where(p => p.DateDeleted == null).ToListAsync();
 
         public async Task<Pizza?> GetByIdAsync(int id) =>
-            await _db.Pizzas.AsNoTracking().FirstOrDefaultAsync(p => p.PizzaId == id);
+            await _db.Pizzas.AsNoTracking().FirstOrDefaultAsync(p => p.PizzaId == id && p.DateDeleted == null);
 
         public async Task<Pizza> AddAsync(Pizza p)
         {
@@ -36,7 +36,8 @@ namespace CebuCrust_api.Repositories
 
         public async Task<bool> DeleteAsync(Pizza p)
         {
-            _db.Pizzas.Remove(p);
+            p.DateDeleted = DateTime.UtcNow;
+            _db.Pizzas.Update(p);
             await _db.SaveChangesAsync();
             return true;
         }
