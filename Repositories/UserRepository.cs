@@ -25,9 +25,9 @@ namespace CebuCrust_api.Repositories
             await _db.SaveChangesAsync();
         }
 
-        public async Task<bool> SoftDeleteAsync(User u)
+        public async Task<bool> DeleteAsync(User u)
         {
-            u.DateDeleted = System.DateTime.UtcNow;
+            u.DateDeleted = DateTime.UtcNow;
             _db.Users.Update(u);
             await _db.SaveChangesAsync();
             return true;
