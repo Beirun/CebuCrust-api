@@ -66,7 +66,7 @@ namespace CebuCrust_api.Services
         {
             var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return false;
-            return await _repo.SoftDeleteAsync(existing);
+            return await _repo.DeleteAsync(existing);
         }
 
         public async Task SaveImageAsync(int userId, IFormFile file)
