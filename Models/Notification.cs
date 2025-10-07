@@ -11,6 +11,8 @@ namespace CebuCrust_api.Models
         [Required] public string NotificationMessage { get; set; } = "";
         public string? NotificationStatus { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+        public DateTime? DateUpdated { get; set; }
+        public DateTime? DateDeleted { get; set; }
 
         public User User { get; set; } = null!;
     }
