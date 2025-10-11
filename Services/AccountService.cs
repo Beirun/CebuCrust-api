@@ -59,6 +59,16 @@ namespace CebuCrust_api.Services
             return GenerateTokens(u);
         }
 
+
+        public async Task<AuthResult?> GoogleAsync(string email, string password)
+        {
+            var u = await _repo.GetUserByEmailAsync(email);
+            if (u == null)
+                throw new Exception("Set your phone number and your password");
+
+            return GenerateTokens(u);
+        }
+
         public string? Refresh(string refreshToken)
         {
             var jwt = _token.Validate(refreshToken);

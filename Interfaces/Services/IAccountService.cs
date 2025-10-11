@@ -7,6 +7,8 @@ namespace CebuCrust_api.Interfaces
     {
         Task<AuthResult> RegisterAsync(User u, string password, string confirmPassword);
         Task<AuthResult?> LoginAsync(string email, string password);
+        Task<AuthResult?> GoogleAsync(string email, string password);
+
         string? Refresh(string refreshToken);
     }
 }

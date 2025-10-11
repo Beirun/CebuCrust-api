@@ -71,6 +71,18 @@ namespace CebuCrust_api.Controllers
             return Ok(new { message = "Logged Out Successfully" });
         }
 
+        [HttpPost("google")]
+        public async Task<IActionResult> Google([FromBody] LoginRequest request)
+        {
+            try
+            {
+                var res = await _svc.GoogleAsync(request.Email, request.Password);
+                SetRefreshCookie(res.RefreshToken);
+                return Ok(new { token = res.AccessToken, user = res.User, message = "Logged In Successfully" });
+            }catch(Exception ex) { return Ok(new { message = ex.Message, isSignedUp= false }); }
+        }
+
+
         private void SetRefreshCookie(string token)
         {
 
