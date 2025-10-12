@@ -17,6 +17,7 @@ namespace CebuCrust_api.Repositories
         public async Task<List<Location>> GetByUserAsync(int uid) =>
             await _db.Locations.AsNoTracking()
                                .Where(l => l.UserId == uid && l.DateDeleted == null)
+                               .OrderByDescending(l => l.IsDefault)
                                .ToListAsync();
 
         public async Task<Location?> GetByIdAsync(int uid, int id) =>
@@ -24,15 +25,34 @@ namespace CebuCrust_api.Repositories
 
         public async Task AddLocationAsync(Location loc)
         {
+            if (loc.IsDefault)
+            {
+                var userLocations = await _db.Locations
+                                            .Where(l => l.UserId == loc.UserId && l.DateDeleted == null)
+                                            .ToListAsync();
+                userLocations.ForEach(l => l.IsDefault = false);
+                _db.Locations.UpdateRange(userLocations);
+            }
+
             _db.Locations.Add(loc);
             await _db.SaveChangesAsync();
         }
 
         public async Task UpdateLocationAsync(Location loc)
         {
+            if (loc.IsDefault)
+            {
+                var userLocations = await _db.Locations
+                                            .Where(l => l.UserId == loc.UserId && l.LocationId != loc.LocationId && l.DateDeleted == null)
+                                            .ToListAsync();
+                userLocations.ForEach(l => l.IsDefault = false);
+                _db.Locations.UpdateRange(userLocations);
+            }
+
             _db.Locations.Update(loc);
             await _db.SaveChangesAsync();
         }
+
 
         public async Task DeleteLocationAsync(Location loc)
         {
