@@ -21,10 +21,14 @@ namespace CebuCrust_api.Services
             {
                 OrderId = o.OrderId,
                 LocationId = o.LocationId,
+                FirstName = o.User.UserFName,
+                LastName = o.User.UserLName,
+                PhoneNumber = o.User.UserPhoneNo,
                 OrderInstruction = o.OrderInstruction,
                 OrderStatus = o.OrderStatus,
                 OrderEstimate = o.OrderEstimate,
-                Items = o.OrderLists.Select(ol => new OrderItemResponse
+                DateCreated = o.DateCreated,
+                OrderLists = o.OrderLists.Select(ol => new OrderItemResponse
                 {
                     PizzaId = ol.PizzaId,
                     Quantity = ol.Quantity
@@ -39,10 +43,25 @@ namespace CebuCrust_api.Services
             {
                 OrderId = o.OrderId,
                 LocationId = o.LocationId,
+                FirstName = o.User.UserFName,
+                LastName = o.User.UserLName,
+                PhoneNumber = o.User.UserPhoneNo,
                 OrderInstruction = o.OrderInstruction,
                 OrderStatus = o.OrderStatus,
                 OrderEstimate = o.OrderEstimate,
-                Items = o.OrderLists.Select(ol => new OrderItemResponse
+                DateCreated = o.DateCreated,
+                Location = new LocationResponse
+                {
+                    LocationId = o.Location.LocationId,
+                LocationCity = o.Location.LocationCity,
+                LocationBrgy = o.Location.LocationBrgy,
+                LocationStreet = o.Location.LocationStreet,
+                LocationHouseNo = o.Location.LocationHouseNo,
+                LocationPostal = o.Location.LocationPostal ?? "",
+                LocationLandmark = o.Location.LocationLandmark ?? "",
+                IsDefault = o.Location.IsDefault
+                },
+                OrderLists = o.OrderLists.Select(ol => new OrderItemResponse
                 {
                     PizzaId = ol.PizzaId,
                     Quantity = ol.Quantity
@@ -62,9 +81,8 @@ namespace CebuCrust_api.Services
                 DateCreated = DateTime.UtcNow
             };
 
-            var items = request.Items.Select(i => new OrderList
+            var items = request.OrderLists.Select(i => new OrderList
             {
-                OrderId = order.OrderId, // EF will generate ID after SaveChanges, so may need to Save first
                 PizzaId = i.PizzaId,
                 Quantity = i.Quantity
             }).ToList();
@@ -78,7 +96,43 @@ namespace CebuCrust_api.Services
                 OrderInstruction = order.OrderInstruction,
                 OrderStatus = order.OrderStatus,
                 OrderEstimate = order.OrderEstimate,
-                Items = items.Select(i => new OrderItemResponse
+                OrderLists = items.Select(i => new OrderItemResponse
+                {
+                    PizzaId = i.PizzaId,
+                    Quantity = i.Quantity
+                }).ToList()
+            };
+        }
+
+        public async Task<OrderResponse?> UpdateAsync(int pid, OrderRequest request)
+        {
+            var existing = await _repo.GetByIdAsync(pid);
+            if (existing == null) return null;
+
+            existing.LocationId = request.LocationId;
+            existing.OrderInstruction = request.OrderInstruction;
+            existing.OrderStatus = request.OrderStatus;
+            existing.OrderEstimate = request.OrderEstimate;
+            existing.DateUpdated = DateTime.UtcNow;
+
+            var requestItems = request.OrderLists.Select(i => new OrderList
+            {
+                PizzaId = i.PizzaId,
+                Quantity = i.Quantity
+            }).ToList();
+            
+
+            await _repo.UpdateOrderAsync(existing, requestItems);
+
+            var items = await _repo.GetOrderItemsAsync(pid);
+            return new OrderResponse
+            {
+                OrderId = existing.OrderId,
+                LocationId = existing.LocationId,
+                OrderInstruction = existing.OrderInstruction,
+                OrderStatus = existing.OrderStatus,
+                OrderEstimate = existing.OrderEstimate,
+                OrderLists = items.Select(i => new OrderItemResponse
                 {
                     PizzaId = i.PizzaId,
                     Quantity = i.Quantity
@@ -102,7 +156,7 @@ namespace CebuCrust_api.Services
                 OrderInstruction = existing.OrderInstruction,
                 OrderStatus = existing.OrderStatus,
                 OrderEstimate = existing.OrderEstimate,
-                Items = items.Select(i => new OrderItemResponse
+                OrderLists = items.Select(i => new OrderItemResponse
                 {
                     PizzaId = i.PizzaId,
                     Quantity = i.Quantity
