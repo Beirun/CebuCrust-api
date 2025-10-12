@@ -18,6 +18,7 @@ namespace CebuCrust_api.Repositories
             await _db.Orders
                      .Include(o => o.OrderLists)
                      .ThenInclude(ol => ol.Pizza)
+                     .Include(o => o.User)
                      .AsNoTracking()
                      .Where(o => o.UserId == uid)
                      .ToListAsync();
@@ -26,6 +27,7 @@ namespace CebuCrust_api.Repositories
             await _db.Orders
                      .Include(o => o.OrderLists)
                      .ThenInclude(ol => ol.Pizza)
+                     .Include(o => o.Location)
                      .Include(o => o.User)
                      .AsNoTracking()
                      .ToListAsync();
@@ -36,8 +38,10 @@ namespace CebuCrust_api.Repositories
             await _db.SaveChangesAsync();
 
             foreach (var item in items)
+            {
+                item.OrderId = order.OrderId;
                 _db.OrderLists.Add(item);
-
+            }
             await _db.SaveChangesAsync();
             return order;
         }
@@ -53,6 +57,23 @@ namespace CebuCrust_api.Repositories
         public async Task UpdateOrderAsync(Order order)
         {
             _db.Orders.Update(order);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateOrderAsync(Order order, IEnumerable<OrderList> items)
+        {
+            _db.Orders.Update(order);
+            await _db.SaveChangesAsync();
+            
+            var existingItems = await _db.OrderLists.Where(ol => ol.OrderId == order.OrderId).ToListAsync();
+            _db.OrderLists.RemoveRange(existingItems);
+            await _db.SaveChangesAsync();
+
+            foreach (var item in items)
+            {
+                item.OrderId = order.OrderId;
+                _db.OrderLists.Add(item);
+            }
             await _db.SaveChangesAsync();
         }
 
