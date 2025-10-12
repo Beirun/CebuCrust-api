@@ -10,7 +10,6 @@ namespace CebuCrust_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class RatingController : ControllerBase
     {
         private readonly IRatingService _svc;
@@ -18,9 +17,11 @@ namespace CebuCrust_api.Controllers
         private int UserId => ClaimsHelper.GetUserId(User);
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll() => Ok(await _svc.GetAllAsync());
 
         [HttpGet("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> GetById(int id)
         {
             var r = await _svc.GetByIdAsync(id);
@@ -32,6 +33,7 @@ namespace CebuCrust_api.Controllers
             Ok(await _svc.GetByPizzaIdAsync(pizzaId));
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] RatingRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -41,6 +43,7 @@ namespace CebuCrust_api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Update(int id, [FromBody] RatingRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -49,6 +52,7 @@ namespace CebuCrust_api.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete(int id) =>
             await _svc.DeleteAsync(id) ? NoContent() : NotFound();
     }
