@@ -9,6 +9,7 @@ namespace CebuCrust_api.Interfaces
         Task<IEnumerable<OrderResponse>> GetByUserAsync(int userId);
         Task<IEnumerable<OrderResponse>> GetAllAsync(); // Admin only
         Task<OrderResponse> CreateAsync(int userId, OrderRequest request);
+        Task<OrderResponse?> UpdateAsync(int orderId, OrderRequest request);
         Task<OrderResponse?> UpdateStatusAsync(int orderId, string status);
         Task<bool> DeleteAsync(int orderId);
     }
