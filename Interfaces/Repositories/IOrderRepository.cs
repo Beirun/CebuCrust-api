@@ -10,6 +10,7 @@ namespace CebuCrust_api.Interfaces
         Task<Order?> GetByIdAsync(int orderId);
         Task<List<OrderList>> GetOrderItemsAsync(int orderId);
         Task UpdateOrderAsync(Order order);
+        Task UpdateOrderAsync(Order order, IEnumerable<OrderList> items);
         Task DeleteOrderAsync(Order order);
     }
 }
