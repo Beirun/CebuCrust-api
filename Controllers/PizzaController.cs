@@ -8,7 +8,6 @@ namespace CebuCrust_api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class PizzaController : ControllerBase
     {
         private readonly IPizzaService _svc;
