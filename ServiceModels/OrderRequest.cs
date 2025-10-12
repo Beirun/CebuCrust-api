@@ -7,6 +7,6 @@ namespace CebuCrust_api.ServiceModels
         public string? OrderInstruction { get; set; }
         public string? OrderStatus { get; set; }
         public string? OrderEstimate { get; set; }
-        public List<OrderItemRequest> Items { get; set; } = new();
+        public List<OrderItemRequest> OrderLists { get; set; } = new();
     }
 }
