@@ -25,7 +25,8 @@ namespace CebuCrust_api.Services
                 LocationStreet = l.LocationStreet,
                 LocationHouseNo = l.LocationHouseNo,
                 LocationPostal = l.LocationPostal ?? "",
-                LocationLandmark = l.LocationLandmark ?? ""
+                LocationLandmark = l.LocationLandmark ?? "",
+                IsDefault = l.IsDefault
             });
         }
 
@@ -40,6 +41,7 @@ namespace CebuCrust_api.Services
                 LocationHouseNo = request.LocationHouseNo,
                 LocationPostal = request.LocationPostal ?? "",
                 LocationLandmark = request.LocationLandmark ?? "",
+                IsDefault = request.IsDefault ?? false,
                 DateCreated = DateTime.UtcNow
             };
             await _repo.AddLocationAsync(loc);
@@ -52,7 +54,8 @@ namespace CebuCrust_api.Services
                 LocationStreet = loc.LocationStreet,
                 LocationHouseNo = loc.LocationHouseNo,
                 LocationPostal = loc.LocationPostal ?? "",
-                LocationLandmark = loc.LocationLandmark ?? ""
+                LocationLandmark = loc.LocationLandmark ?? "",
+                IsDefault = loc.IsDefault
             };
         }
 
@@ -65,6 +68,7 @@ namespace CebuCrust_api.Services
             existing.LocationBrgy = request.LocationBrgy;
             existing.LocationStreet = request.LocationStreet;
             existing.LocationHouseNo = request.LocationHouseNo;
+            existing.IsDefault = request.IsDefault ?? existing.IsDefault;
             if(!String.IsNullOrEmpty(request.LocationPostal)) existing.LocationPostal = request.LocationPostal;
             if(!String.IsNullOrEmpty(request.LocationLandmark)) existing.LocationLandmark = request.LocationLandmark;
             existing.DateUpdated = DateTime.UtcNow;
@@ -79,7 +83,8 @@ namespace CebuCrust_api.Services
                 LocationStreet = existing.LocationStreet,
                 LocationHouseNo = existing.LocationHouseNo,
                 LocationPostal = existing.LocationPostal ?? "",
-                LocationLandmark = existing.LocationLandmark ?? ""
+                LocationLandmark = existing.LocationLandmark ?? "",
+                IsDefault = existing.IsDefault
             };
         }
 
