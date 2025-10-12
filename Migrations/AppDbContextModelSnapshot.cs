@@ -74,6 +74,9 @@ namespace CebuCrust_api.Migrations
                     b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("LocationBrgy")
                         .HasColumnType("TEXT");
 
