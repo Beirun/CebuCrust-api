@@ -34,6 +34,14 @@ namespace CebuCrust_api.Controllers
             return Ok(created);
         }
 
+        [HttpPut("{orderId:int}")]
+        public async Task<IActionResult> Update(int orderId, [FromBody] OrderRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var updated = await _svc.UpdateAsync(orderId, request);
+            return updated == null ? NotFound() : Ok(updated);
+        }
+        
         [HttpPut("{orderId:int}/status")]
         public async Task<IActionResult> UpdateStatus(int orderId, [FromBody] string status)
         {
