@@ -99,13 +99,27 @@ namespace CebuCrust_api.Services
             if (file == null || file.Length == 0) return;
 
             var pizzasFolder = Path.Combine(_env.ContentRootPath, "Resources", "Pizzas");
-            if (!Directory.Exists(pizzasFolder)) Directory.CreateDirectory(pizzasFolder);
+            if (!Directory.Exists(pizzasFolder))
+                Directory.CreateDirectory(pizzasFolder);
+
+            var existingFiles = Directory.GetFiles(pizzasFolder, $"{pizzaId}.*");
+            foreach (var existingFile in existingFiles)
+            {
+                try
+                {
+                    File.Delete(existingFile);
+                }
+                catch (Exception) { }
+                
+            }
 
             var ext = Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(pizzasFolder, pizzaId + ext);
+            var filePath = Path.Combine(pizzasFolder, $"{pizzaId}{ext}");
 
             using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
+
         }
+
     }
 }

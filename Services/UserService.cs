@@ -70,19 +70,31 @@ namespace CebuCrust_api.Services
         }
 
         public async Task SaveImageAsync(int userId, IFormFile file)
+{
+    if (file == null || file.Length == 0) return;
+
+    var usersFolder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+    if (!Directory.Exists(usersFolder))
+        Directory.CreateDirectory(usersFolder);
+
+    var existingFiles = Directory.GetFiles(usersFolder, $"{userId}.*");
+    foreach (var existingFile in existingFiles)
+    {
+        try
         {
-            if (file == null || file.Length == 0) return;
-
-            var usersFolder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
-            if (!Directory.Exists(usersFolder))
-                Directory.CreateDirectory(usersFolder);
-
-            var ext = Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(usersFolder, $"{userId}{ext}");
-
-            using var stream = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+            File.Delete(existingFile);
         }
+        catch (Exception) {}
+    }
+
+    var ext = Path.GetExtension(file.FileName);
+    var filePath = Path.Combine(usersFolder, $"{userId}{ext}");
+
+    using var stream = new FileStream(filePath, FileMode.Create);
+    await file.CopyToAsync(stream);
+
+}
+
 
         private UserResponse MapUser(User u)
         {

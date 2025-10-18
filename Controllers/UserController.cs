@@ -25,14 +25,25 @@ namespace CebuCrust_api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            Console.WriteLine($"Update request for ID: {id}");
+            Console.WriteLine($"FirstName: {request.UserFName}");
+            Console.WriteLine($"LastName: {request.UserLName}");
+            Console.WriteLine($"Email: {request.UserEmail}");
+            Console.WriteLine($"PhoneNo: {request.UserPhoneNo}");
+            Console.WriteLine($"CurrentPassword: {request.CurrentPassword}");
+            Console.WriteLine($"NewPassword: {request.NewPassword}");
+            Console.WriteLine($"ConfirmPassword: {request.ConfirmPassword}");
+            Console.WriteLine($"Image: {(request.Image != null ? request.Image.FileName : "No image")}");
             try
             {
+                if (request.Image != null)
+                    await _svc.SaveImageAsync(id, request.Image);
+
                 var updated = await _svc.UpdateAsync(id, request);
 
                 if (updated == null) return NotFound();
 
-                if (request.Image != null)
-                    await _svc.SaveImageAsync(updated.UserId, request.Image);
+                
 
                 return Ok(updated);
             }

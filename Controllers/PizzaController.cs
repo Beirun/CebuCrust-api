@@ -42,11 +42,12 @@ namespace CebuCrust_api.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromForm] PizzaRequest request)
         {
+            if (request.Image != null)
+                await _svc.SaveImageAsync(id, request.Image);
             var updated = await _svc.UpdateAsync(id, request);
             if (updated == null) return NotFound();
 
-            if (request.Image != null)
-                await _svc.SaveImageAsync(updated.PizzaId, request.Image);
+            
 
             return Ok(updated);
         }
