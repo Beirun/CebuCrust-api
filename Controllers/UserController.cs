@@ -16,7 +16,6 @@ namespace CebuCrust_api.Controllers
         public UserController(IUserService svc) => _svc = svc;
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _svc.GetAllAsync());
 
