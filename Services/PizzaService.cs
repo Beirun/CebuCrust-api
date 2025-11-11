@@ -89,6 +89,7 @@ namespace CebuCrust_api.Services
                 PizzaDescription = p.PizzaDescription ?? "",
                 PizzaCategory = p.PizzaCategory ?? "",
                 IsAvailable = p.IsAvailable,
+                IsDeleted = p.DateDeleted != null,
                 PizzaPrice = p.PizzaPrice,
                 pizzaImage = imgData
             };
