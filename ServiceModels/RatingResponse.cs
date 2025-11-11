@@ -6,5 +6,6 @@
         public int PizzaId { get; set; }
         public int RatingValue { get; set; }
         public string? RatingMessage { get; set; }
+        public DateTime DateCreated { get; set; }
     }
 }
