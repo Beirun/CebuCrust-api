@@ -25,7 +25,7 @@ namespace CebuCrust_api.Controllers
         public async Task<IActionResult> Create([FromBody] NotificationRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var created = await _svc.CreateAsync(UserId, request);
+            var created = await _svc.CreateAsync(request.UserId ?? 1, request);
             return Ok(created);
         }
 
