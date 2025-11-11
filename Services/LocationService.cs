@@ -26,7 +26,8 @@ namespace CebuCrust_api.Services
                 LocationHouseNo = l.LocationHouseNo,
                 LocationPostal = l.LocationPostal ?? "",
                 LocationLandmark = l.LocationLandmark ?? "",
-                IsDefault = l.IsDefault
+                IsDefault = l.IsDefault,
+                IsDeleted = l.DateDeleted != null
             });
         }
 
@@ -55,7 +56,8 @@ namespace CebuCrust_api.Services
                 LocationHouseNo = loc.LocationHouseNo,
                 LocationPostal = loc.LocationPostal ?? "",
                 LocationLandmark = loc.LocationLandmark ?? "",
-                IsDefault = loc.IsDefault
+                IsDefault = loc.IsDefault,
+                IsDeleted = loc.DateDeleted != null
             };
         }
 
@@ -84,7 +86,9 @@ namespace CebuCrust_api.Services
                 LocationHouseNo = existing.LocationHouseNo,
                 LocationPostal = existing.LocationPostal ?? "",
                 LocationLandmark = existing.LocationLandmark ?? "",
-                IsDefault = existing.IsDefault
+                IsDefault = existing.IsDefault,
+                IsDeleted = existing.DateDeleted != null
+
             };
         }
 
