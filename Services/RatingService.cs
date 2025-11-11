@@ -19,7 +19,8 @@ namespace CebuCrust_api.Services
             UserId = r.UserId,
             PizzaId = r.PizzaId,
             RatingValue = r.RatingValue,
-            RatingMessage = r.RatingMessage
+            RatingMessage = r.RatingMessage,
+            DateCreated = r.DateCreated
         };
 
         public async Task<IEnumerable<RatingResponse>> GetAllAsync()
