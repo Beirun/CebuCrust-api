@@ -36,7 +36,8 @@ namespace CebuCrust_api.Repositories
 
         public async Task DeleteNotificationAsync(Notification n)
         {
-            _db.Notifications.Remove(n);
+            n.DateDeleted = DateTime.UtcNow;
+            _db.Notifications.Update(n);
             await _db.SaveChangesAsync();
         }
     }
