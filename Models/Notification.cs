@@ -8,6 +8,7 @@ namespace CebuCrust_api.Models
     {
         [Key] public int NotificationId { get; set; }
         public int UserId { get; set; }
+        [Required] public string NotificationTitle { get; set; } = "";
         [Required] public string NotificationMessage { get; set; } = "";
         public string? NotificationStatus { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
