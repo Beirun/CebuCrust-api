@@ -4,6 +4,7 @@ namespace CebuCrust_api.ServiceModels
     public class OrderResponse
     {
         public int OrderId { get; set; }
+        public int UserId { get; set; }
         public int LocationId { get; set; }
         
         public string? FirstName { get; set; }
