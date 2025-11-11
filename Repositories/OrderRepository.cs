@@ -20,7 +20,8 @@ namespace CebuCrust_api.Repositories
                      .ThenInclude(ol => ol.Pizza)
                      .Include(o => o.User)
                      .AsNoTracking()
-                     .Where(o => o.UserId == uid)
+                     .Where(o => o.UserId == uid && o.DateDeleted == null)
+                     .OrderByDescending(o => o.OrderId)
                      .ToListAsync();
 
         public async Task<List<Order>> GetAllAsync() =>
@@ -30,6 +31,8 @@ namespace CebuCrust_api.Repositories
                      .Include(o => o.Location)
                      .Include(o => o.User)
                      .AsNoTracking()
+                     .Where(o => o.DateDeleted == null)
+                     .OrderByDescending(o => o.OrderId)
                      .ToListAsync();
 
         public async Task<Order> AddOrderAsync(Order order, IEnumerable<OrderList> items)
@@ -79,9 +82,8 @@ namespace CebuCrust_api.Repositories
 
         public async Task DeleteOrderAsync(Order order)
         {
-            var items = await _db.OrderLists.Where(ol => ol.OrderId == order.OrderId).ToListAsync();
-            _db.OrderLists.RemoveRange(items);
-            _db.Orders.Remove(order);
+            order.DateDeleted = DateTime.UtcNow;
+            _db.Orders.Update(order);
             await _db.SaveChangesAsync();
         }
     }
