@@ -128,6 +128,10 @@ namespace CebuCrust_api.Migrations
                     b.Property<string>("NotificationStatus")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("NotificationTitle")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
@@ -145,6 +149,9 @@ namespace CebuCrust_api.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DateCreated")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DateDeleted")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("DateUpdated")
