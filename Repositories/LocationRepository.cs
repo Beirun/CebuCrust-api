@@ -16,19 +16,19 @@ namespace CebuCrust_api.Repositories
 
         public async Task<List<Location>> GetByUserAsync(int uid) =>
             await _db.Locations.AsNoTracking()
-                               .Where(l => l.UserId == uid && l.DateDeleted == null)
+                               .Where(l => l.UserId == uid)
                                .OrderByDescending(l => l.IsDefault)
                                .ToListAsync();
 
         public async Task<Location?> GetByIdAsync(int uid, int id) =>
-            await _db.Locations.FirstOrDefaultAsync(l => l.LocationId == id && l.UserId == uid && l.DateDeleted == null);
+            await _db.Locations.FirstOrDefaultAsync(l => l.LocationId == id && l.UserId == uid);
 
         public async Task AddLocationAsync(Location loc)
         {
             if (loc.IsDefault)
             {
                 var userLocations = await _db.Locations
-                                            .Where(l => l.UserId == loc.UserId && l.DateDeleted == null)
+                                            .Where(l => l.UserId == loc.UserId)
                                             .ToListAsync();
                 userLocations.ForEach(l => l.IsDefault = false);
                 _db.Locations.UpdateRange(userLocations);
@@ -43,7 +43,7 @@ namespace CebuCrust_api.Repositories
             if (loc.IsDefault)
             {
                 var userLocations = await _db.Locations
-                                            .Where(l => l.UserId == loc.UserId && l.LocationId != loc.LocationId && l.DateDeleted == null)
+                                            .Where(l => l.UserId == loc.UserId && l.LocationId != loc.LocationId)
                                             .ToListAsync();
                 userLocations.ForEach(l => l.IsDefault = false);
                 _db.Locations.UpdateRange(userLocations);
