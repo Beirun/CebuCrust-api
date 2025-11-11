@@ -10,6 +10,7 @@
         public string? LocationPostal { get; set; }
         public string? LocationLandmark { get; set; }
         public bool? IsDefault { get; set; }
+        public bool IsDeleted { get; set; }
 
     }
 }
