@@ -20,8 +20,10 @@ namespace CebuCrust_api.Services
             return notifs.Select(n => new NotificationResponse
             {
                 NotificationId = n.NotificationId,
+                NotificationTitle = n.NotificationTitle,
                 NotificationMessage = n.NotificationMessage,
-                NotificationStatus = n.NotificationStatus
+                NotificationStatus = n.NotificationStatus,
+                DateCreated = n.DateCreated
             });
         }
 
@@ -30,6 +32,7 @@ namespace CebuCrust_api.Services
             var n = new Notification
             {
                 UserId = uid,
+                NotificationTitle = request.NotificationTitle ?? "",
                 NotificationMessage = request.NotificationMessage ?? "",
                 NotificationStatus = request.NotificationStatus,
                 DateCreated = DateTime.UtcNow
@@ -39,8 +42,10 @@ namespace CebuCrust_api.Services
             return new NotificationResponse
             {
                 NotificationId = n.NotificationId,
+                NotificationTitle = n.NotificationTitle,
                 NotificationMessage = n.NotificationMessage,
-                NotificationStatus = n.NotificationStatus
+                NotificationStatus = n.NotificationStatus,
+                DateCreated = n.DateCreated
             };
         }
 
@@ -57,7 +62,9 @@ namespace CebuCrust_api.Services
             {
                 NotificationId = existing.NotificationId,
                 NotificationMessage = existing.NotificationMessage,
-                NotificationStatus = existing.NotificationStatus
+                NotificationTitle = existing.NotificationTitle,
+                NotificationStatus = existing.NotificationStatus,
+                DateCreated = existing.DateCreated
             };
         }
 
