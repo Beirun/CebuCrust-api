@@ -11,18 +11,22 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using CebuCrust_api.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace CebuCrust_api.Services
 {
     public class AccountService : IAccountService
     {
         private readonly IAccountRepository _repo;
+        private readonly IValidationService _vsvc;
         private readonly IWebHostEnvironment _env;
         private readonly TokenProvider _token;
 
-        public AccountService(IAccountRepository repo, IConfiguration cfg, IWebHostEnvironment env)
+
+        public AccountService(IAccountRepository repo, IConfiguration cfg, IWebHostEnvironment env, IValidationService vsvc)
         {
             _repo = repo;
+            _vsvc = vsvc;
             _env = env;
             var opt = JwtSettings.Load(cfg);
             _token = new TokenProvider(opt);
@@ -32,10 +36,10 @@ namespace CebuCrust_api.Services
         {
             if (password != confirmPassword)
                 throw new Exception("Passwords do not match");
-
+            if(!await _vsvc.IsValidEmailAsync(u.UserEmail)) throw new Exception("Email is invalid");
             if (await _repo.EmailExistsAsync(u.UserEmail))
                 throw new Exception("Email already exists");
-
+            if(!await _vsvc.IsValidPhoneAsync(u.UserPhoneNo!)) throw new Exception("Phone number is invalid");
             bool isFirstUser = await _repo.IsFirstUserAsync();
             var roleName = isFirstUser ? "Admin" : "User";
             var role = await _repo.GetRoleByNameAsync(roleName)
