@@ -9,19 +9,26 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using BCrypt.Net;
 using CebuCrust_api.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace CebuCrust_api.Services
 {
     public class UserService : IUserService
     {
         private readonly IUserRepository _repo;
-        private readonly IWebHostEnvironment _env;
+        private readonly IAccountRepository _acrepo;
 
-        public UserService(IUserRepository repo, IWebHostEnvironment env)
+        private readonly IWebHostEnvironment _env;
+        private readonly IValidationService _vsvc;
+        
+        public UserService(IUserRepository repo, IWebHostEnvironment env, IAccountRepository acrepo, IValidationService vsvc)
         {
             _repo = repo;
             _env = env;
+            _acrepo = acrepo;
+            _vsvc = vsvc;
         }
+        
 
         public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
@@ -31,14 +38,28 @@ namespace CebuCrust_api.Services
 
         public async Task<UserResponse?> UpdateAsync(int id, UserUpdateRequest request)
         {
+
             var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return null;
 
+            
             if (!string.IsNullOrEmpty(request.UserFName)) existing.UserFName = request.UserFName;
             if (!string.IsNullOrEmpty(request.UserLName)) existing.UserLName = request.UserLName;
-            if (!string.IsNullOrEmpty(request.UserEmail)) existing.UserEmail = request.UserEmail;
-            if (!string.IsNullOrEmpty(request.UserPhoneNo)) existing.UserPhoneNo = request.UserPhoneNo;
+            if (!string.IsNullOrEmpty(request.UserEmail))
+            {
+                if(!await _vsvc.IsValidEmailAsync(request.UserEmail)) throw new Exception("Email is invalid");
+
+                var isEmailExists = await _acrepo.EmailExistsAsync(request.UserEmail);
+                if(isEmailExists && existing.UserEmail!=request.UserEmail) throw new Exception("Email already exists.");
+                 existing.UserEmail = request.UserEmail;
+            }
+            if (!string.IsNullOrEmpty(request.UserPhoneNo))
+            {
+                if(!await _vsvc.IsValidPhoneAsync(request.UserPhoneNo)) throw new Exception("Phone number is invalid");
+                existing.UserPhoneNo = request.UserPhoneNo;
+            }
             existing.DateUpdated = DateTime.UtcNow;
+            
 
             if (!string.IsNullOrEmpty(request.CurrentPassword) ||
                 !string.IsNullOrEmpty(request.NewPassword) ||
@@ -57,6 +78,13 @@ namespace CebuCrust_api.Services
 
                 existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             }
+            if (request.Image != null)
+            {
+                if(!await _vsvc.IsValidImageAsync(request.Image)) throw new Exception("Invalid Image file");
+                 await SaveImageAsync(id, request.Image);
+            }
+            else await DeleteImageAsync(id);
+
 
             await _repo.UpdateAsync(existing);
             return MapUser(existing);
@@ -70,30 +98,47 @@ namespace CebuCrust_api.Services
         }
 
         public async Task SaveImageAsync(int userId, IFormFile file)
-{
-    if (file == null || file.Length == 0) return;
-
-    var usersFolder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
-    if (!Directory.Exists(usersFolder))
-        Directory.CreateDirectory(usersFolder);
-
-    var existingFiles = Directory.GetFiles(usersFolder, $"{userId}.*");
-    foreach (var existingFile in existingFiles)
-    {
-        try
         {
-            File.Delete(existingFile);
+            if (file == null || file.Length == 0) return;
+
+            var usersFolder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+            if (!Directory.Exists(usersFolder))
+                Directory.CreateDirectory(usersFolder);
+
+            var existingFiles = Directory.GetFiles(usersFolder, $"{userId}.*");
+            foreach (var existingFile in existingFiles)
+            {
+                try
+                {
+                    File.Delete(existingFile);
+                }
+                catch (Exception) {}
+            }
+
+            var ext = Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(usersFolder, $"{userId}{ext}");
+
+            using var stream = new FileStream(filePath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
         }
-        catch (Exception) {}
-    }
 
-    var ext = Path.GetExtension(file.FileName);
-    var filePath = Path.Combine(usersFolder, $"{userId}{ext}");
+        public async Task DeleteImageAsync(int userId)
+        {
+            var usersFolder = Path.Combine(_env.ContentRootPath, "Resources", "Users");
+            if (!Directory.Exists(usersFolder))
+                Directory.CreateDirectory(usersFolder);
 
-    using var stream = new FileStream(filePath, FileMode.Create);
-    await file.CopyToAsync(stream);
-
-}
+            var existingFiles = Directory.GetFiles(usersFolder, $"{userId}.*");
+            foreach (var existingFile in existingFiles)
+            {
+                try
+                {
+                    File.Delete(existingFile);
+                }
+                catch (Exception) {}
+            }
+        }
 
 
         private UserResponse MapUser(User u)
