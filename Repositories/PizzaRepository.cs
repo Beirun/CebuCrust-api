@@ -20,6 +20,9 @@ namespace CebuCrust_api.Repositories
         public async Task<Pizza?> GetByIdAsync(int id) =>
             await _db.Pizzas.AsNoTracking().FirstOrDefaultAsync(p => p.PizzaId == id);
 
+        public async Task<Pizza?> GetByNameAsync(string name) =>
+            await _db.Pizzas.AsNoTracking().FirstOrDefaultAsync(p => p.PizzaName.ToLower() == name.ToLower());
+
         public async Task<Pizza> AddAsync(Pizza p)
         {
             _db.Pizzas.Add(p);
