@@ -24,6 +24,8 @@ namespace CebuCrust_api.Services
 
         public async Task<PizzaResponse> CreateAsync(PizzaRequest request)
         {
+            var existing = _repo.GetByNameAsync(request.PizzaName);
+            if(existing != null) throw new Exception("Pizza already exists.");
             var p = new Pizza
             {
                 PizzaName = request.PizzaName,
@@ -40,6 +42,8 @@ namespace CebuCrust_api.Services
 
         public async Task<PizzaResponse?> UpdateAsync(int id, PizzaRequest request)
         {
+            var existing = _repo.GetByNameAsync(request.PizzaName);
+            if(existing != null) throw new Exception("Pizza already exists.");
             var p = await _repo.GetByIdAsync(id);
             if (p == null) return null;
 
