@@ -84,7 +84,7 @@ builder.Services.AddScoped<IPizzaService, PizzaService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IResetService, ResetService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
+builder.Services.AddScoped<IValidationService,ValidationService>();
 
 
 // Add controllers
