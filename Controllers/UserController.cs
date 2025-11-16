@@ -25,8 +25,7 @@ namespace CebuCrust_api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
             try
             {
-                if (request.Image != null)
-                    await _svc.SaveImageAsync(id, request.Image);
+                
 
                 var updated = await _svc.UpdateAsync(id, request);
 
