@@ -46,6 +46,17 @@ namespace CebuCrust_api.Repositories
                 _db.OrderLists.Add(item);
             }
             await _db.SaveChangesAsync();
+            foreach (var item in items)
+            {
+                var p = await _db.Pizzas.FirstOrDefaultAsync(pz => pz.PizzaId == item.PizzaId);
+                if(p != null)
+                {
+                    p.Stock -= item.Quantity;
+                    _db.Pizzas.Update(p);
+                }
+            }
+            await _db.SaveChangesAsync();
+
             return order;
         }
 
@@ -69,17 +80,35 @@ namespace CebuCrust_api.Repositories
             await _db.SaveChangesAsync();
             
             var existingItems = await _db.OrderLists.Where(ol => ol.OrderId == order.OrderId).ToListAsync();
-            _db.OrderLists.RemoveRange(existingItems);
-            await _db.SaveChangesAsync();
-
-            foreach (var item in items)
+            foreach(var existingItem in existingItems)
             {
-                item.OrderId = order.OrderId;
-                _db.OrderLists.Add(item);
-            }
-            await _db.SaveChangesAsync();
-        }
+                var item = items.FirstOrDefault(ol => ol.PizzaId == existingItem.PizzaId);
+                var p = await _db.Pizzas.FirstOrDefaultAsync(pz => pz.PizzaId == existingItem.PizzaId);
+                if(item == null)
+                {
+                    if (p != null)
+                    {
+                        p.Stock += existingItem.Quantity;
+                        _db.Pizzas.Update(p);
+                    }
+                    continue;
+                }
+                int quantityIncrease = item.Quantity - existingItem.Quantity;
+                if(p != null)
+                {
+                    if(p.Stock < quantityIncrease) 
+                        throw new Exception($"{p.PizzaName} only has {p.Stock} left. Your increase of {quantityIncrease} is not valid");
+                    p.Stock -= quantityIncrease;
+                    _db.Pizzas.Update(p);
+                }
+                existingItem.Quantity = item.Quantity;
 
+            }
+            _db.OrderLists.UpdateRange(existingItems);
+            await _db.SaveChangesAsync();
+
+        }
+        
         public async Task DeleteOrderAsync(Order order)
         {
             order.DateDeleted = DateTime.UtcNow;
