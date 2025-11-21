@@ -36,10 +36,17 @@ namespace CebuCrust_api.Services
         {
             if (password != confirmPassword)
                 throw new Exception("Passwords do not match");
-            if(!await _vsvc.IsValidEmailAsync(u.UserEmail)) throw new Exception("Email is invalid");
+            if(!await _vsvc.IsValidEmailAsync(u.UserEmail)) 
+                throw new Exception("Email is invalid");
+
             if (await _repo.EmailExistsAsync(u.UserEmail))
                 throw new Exception("Email already exists");
-            if(!await _vsvc.IsValidPhoneAsync(u.UserPhoneNo!)) throw new Exception("Phone number is invalid");
+
+            if(!await _vsvc.IsValidPhoneAsync(u.UserPhoneNo!)) 
+                throw new Exception("Phone number is invalid");
+            if (password.Length < 8)
+                    throw new Exception("Password must be atleast 8 characters long");
+    
             bool isFirstUser = await _repo.IsFirstUserAsync();
             var roleName = isFirstUser ? "Admin" : "User";
             var role = await _repo.GetRoleByNameAsync(roleName)
@@ -73,21 +80,15 @@ namespace CebuCrust_api.Services
             return GenerateTokens(u);
         }
 
-        public string? Refresh(string refreshToken)
+        public async Task<string?> Refresh(string refreshToken)
         {
             var jwt = _token.Validate(refreshToken);
             if (jwt == null) return null;
 
-            return _token.CreateAccess(new User
-            {
-                UserId = int.Parse(jwt.Subject),
-                UserEmail = jwt.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value ?? "",
-                Role = new Role
-                {
-                    RoleName = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "User"
-                }
-            });
+            var u = await _repo.GetUserByIdAsync(int.Parse(jwt.Subject)) ?? throw new Exception("Invalid Session");
+            return _token.CreateAccess(u);
         }
+
 
         private AuthResult GenerateTokens(User u)
         {
