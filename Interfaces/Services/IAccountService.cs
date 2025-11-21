@@ -9,6 +9,6 @@ namespace CebuCrust_api.Interfaces
         Task<AuthResult?> LoginAsync(string email, string password);
         Task<AuthResult?> GoogleAsync(string email, string password);
 
-        string? Refresh(string refreshToken);
+        Task<string?> Refresh(string refreshToken);
     }
 }
