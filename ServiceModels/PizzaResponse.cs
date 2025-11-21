@@ -8,6 +8,7 @@
         public string PizzaCategory { get; set; } = "";
         public decimal PizzaPrice { get; set; }
         public int Stock {get; set;}
+        public int FavoriteCount {get; set;}
         public bool IsDeleted { get; set; }
         public byte[]? pizzaImage { get; set; }
     }

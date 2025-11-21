@@ -82,18 +82,24 @@ namespace CebuCrust_api.Services
         public async Task<IEnumerable<PizzaResponse>> GetAllAsync()
         {
             var pizzas = await _repo.GetAllAsync();
-            return pizzas.Select(p => ToResponse(p));
+            var list = new List<PizzaResponse>();
+
+            foreach (var p in pizzas)
+                list.Add(await ToResponse(p));
+
+            return list;
         }
 
         public async Task<PizzaResponse?> GetByIdAsync(int id)
         {
             var pizza = await _repo.GetByIdAsync(id);
-            return pizza == null ? null : ToResponse(pizza);
+            return pizza == null ? null : await ToResponse(pizza);
         }
 
-        private PizzaResponse ToResponse(Pizza p)
+        private async Task<PizzaResponse> ToResponse(Pizza p)
         {
             byte[]? imgData = null;
+            int count = await _repo.GetPizzaFavoriteCountAsync(p.PizzaId);
             var folder = Path.Combine(_env.ContentRootPath, "Resources", "Pizzas");
             if (Directory.Exists(folder))
             {
@@ -110,6 +116,7 @@ namespace CebuCrust_api.Services
                 Stock = p.Stock,
                 IsDeleted = p.DateDeleted != null,
                 PizzaPrice = p.PizzaPrice,
+                FavoriteCount = count,
                 pizzaImage = imgData
             };
         }
