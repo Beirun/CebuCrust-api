@@ -214,9 +214,6 @@ namespace CebuCrust_api.Migrations
                     b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("PizzaCategory")
                         .HasColumnType("TEXT");
 
@@ -229,6 +226,9 @@ namespace CebuCrust_api.Migrations
 
                     b.Property<decimal>("PizzaPrice")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("PizzaId");
 
