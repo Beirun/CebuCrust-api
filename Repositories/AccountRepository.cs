@@ -18,6 +18,10 @@ namespace CebuCrust_api.Repositories
             await _db.Users.Include(u => u.Role)
                            .FirstOrDefaultAsync(u => u.UserEmail == email);
 
+        public async Task<User?> GetUserByIdAsync(int id) =>
+            await _db.Users.Include(u => u.Role)
+                           .FirstOrDefaultAsync(u => u.UserId == id);
+
         public async Task<bool> IsFirstUserAsync() =>
             !await _db.Users.AnyAsync();
 
