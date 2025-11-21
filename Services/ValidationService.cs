@@ -23,7 +23,7 @@ namespace CebuCrust_api.Services
             RegexOptions.IgnoreCase | RegexOptions.Compiled
         );
 
-        const long MaxImageBytes = 2L * 1024L * 1024L;
+        const long MaxImageBytes = 5L * 1024L * 1024L;
 
         public ValidationService() {}
 
