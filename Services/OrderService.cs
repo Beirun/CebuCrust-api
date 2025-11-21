@@ -12,7 +12,13 @@ namespace CebuCrust_api.Services
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _repo;
-        public OrderService(IOrderRepository repo) => _repo = repo;
+        private readonly IPizzaRepository _prepo;
+        public OrderService(IOrderRepository repo, IPizzaRepository prepo)
+        {
+            _repo = repo;
+            _prepo = prepo;
+            
+        }
 
         private OrderResponse Map(Order o, IEnumerable<OrderList>? items = null)
         {
@@ -63,6 +69,13 @@ namespace CebuCrust_api.Services
 
         public async Task<OrderResponse> CreateAsync(int uid, OrderRequest request)
         {
+            foreach(var ol in request.OrderLists)
+            {
+                if(ol.Quantity < 1) throw new Exception("Item order amount has a minimum of 1");
+                var p = await _prepo.GetByIdAsync(ol.PizzaId);
+                if(p == null) throw new Exception("Pizza does not exist");
+                if(p.Stock < ol.Quantity) throw new Exception($"{p.PizzaName} only has {p.Stock} left");
+            }
             var order = new Order
             {
                 UserId = uid,
@@ -99,6 +112,7 @@ namespace CebuCrust_api.Services
                 PizzaId = i.PizzaId,
                 Quantity = i.Quantity
             }).ToList();
+
 
             await _repo.UpdateOrderAsync(existing, requestItems);
 
