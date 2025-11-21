@@ -26,7 +26,9 @@ namespace CebuCrust_api.Services
 
         public async Task<PizzaResponse> CreateAsync(PizzaRequest request)
         {
-            var existing = _repo.GetByNameAsync(request.PizzaName);
+            Console.WriteLine($"{request.PizzaName}");
+            var existing = await _repo.GetByNameAsync(request.PizzaName);
+            Console.WriteLine($"{System.Text.Json.JsonSerializer.Serialize(existing)}");
             if(existing != null) throw new Exception("Pizza already exists.");
             if(request.PizzaPrice < 1) throw new Exception("Price should not be less than zero");
             if(request.Stock < 1) throw new Exception("Stock should not be less than zero");
