@@ -30,26 +30,34 @@ namespace CebuCrust_api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var created = await _svc.CreateAsync(request);
+            try
+            {
+                var created = await _svc.CreateAsync(request);
 
-            if (request.Image != null)
-                await _svc.SaveImageAsync(created.PizzaId, request.Image);
+                if (request.Image != null)
+                    await _svc.SaveImageAsync(created.PizzaId, request.Image);
 
-            return CreatedAtAction(nameof(GetById), new { id = created.PizzaId }, created);
+                return CreatedAtAction(nameof(GetById), new { id = created.PizzaId }, created);
+            }catch(Exception e)
+            {
+                return BadRequest(new {Message = e.Message});
+            }
         }
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(int id, [FromForm] PizzaRequest request)
         {
-            if (request.Image != null)
-                await _svc.SaveImageAsync(id, request.Image);
-            var updated = await _svc.UpdateAsync(id, request);
-            if (updated == null) return NotFound();
-
-            
-
-            return Ok(updated);
+            try
+            {
+                
+                var updated = await _svc.UpdateAsync(id, request);
+                if (updated == null) return NotFound();
+                return Ok(updated);
+            }catch(Exception e)
+            {
+                return BadRequest(new {Message = e.Message});
+            }
         }
 
         [HttpDelete("{id:int}")]
