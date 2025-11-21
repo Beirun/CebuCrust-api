@@ -6,6 +6,7 @@ namespace CebuCrust_api.Interfaces
     {
         Task<bool> EmailExistsAsync(string email);
         Task<User?> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByIdAsync(int id);
         Task<bool> IsFirstUserAsync();
         Task<Role?> GetRoleByNameAsync(string roleName);
         Task AddUserAsync(User u);
