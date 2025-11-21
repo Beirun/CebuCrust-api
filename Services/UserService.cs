@@ -75,12 +75,17 @@ namespace CebuCrust_api.Services
 
                 if (request.NewPassword != request.ConfirmPassword)
                     throw new Exception("New password and confirm password do not match.");
+                
+                if (request.NewPassword.Length < 8)
+                    throw new Exception("New password must be atleast 8 characters long");
 
                 existing.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
             }
             if (request.Image != null)
             {
-                if(!await _vsvc.IsValidImageAsync(request.Image)) throw new Exception("Invalid Image file");
+                
+                if(!await _vsvc.IsValidImageAsync(request.Image!)) 
+                    throw new Exception("Invalid file. Must be an image and a maximum of 5MB");
                  await SaveImageAsync(id, request.Image);
             }
             else await DeleteImageAsync(id);
