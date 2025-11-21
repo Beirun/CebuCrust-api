@@ -15,23 +15,29 @@ namespace CebuCrust_api.Services
     {
         private readonly IPizzaRepository _repo;
         private readonly IWebHostEnvironment _env;
+        private readonly IValidationService _v;
 
-        public PizzaService(IPizzaRepository repo, IWebHostEnvironment env)
+        public PizzaService(IPizzaRepository repo, IWebHostEnvironment env, IValidationService v)
         {
             _repo = repo;
             _env = env;
+            _v = v;
         }
 
         public async Task<PizzaResponse> CreateAsync(PizzaRequest request)
         {
             var existing = _repo.GetByNameAsync(request.PizzaName);
             if(existing != null) throw new Exception("Pizza already exists.");
+            if(request.PizzaPrice < 1) throw new Exception("Price should not be less than zero");
+            if(request.Stock < 1) throw new Exception("Stock should not be less than zero");
+            if(!await _v.IsValidImageAsync(request.Image!)) 
+                throw new Exception("Invalid file. Must be an image and a maximum of 5MB");
             var p = new Pizza
             {
                 PizzaName = request.PizzaName,
                 PizzaDescription = request.PizzaDescription,
                 PizzaCategory = request.PizzaCategory,
-                IsAvailable = true,
+                Stock = request.Stock,
                 PizzaPrice = request.PizzaPrice,
                 DateCreated = DateTime.UtcNow
             };
@@ -42,18 +48,25 @@ namespace CebuCrust_api.Services
 
         public async Task<PizzaResponse?> UpdateAsync(int id, PizzaRequest request)
         {
-            var existing = _repo.GetByNameAsync(request.PizzaName);
-            if(existing != null) throw new Exception("Pizza already exists.");
             var p = await _repo.GetByIdAsync(id);
+            var existing = await _repo.GetByNameAsync(request.PizzaName);
+            if(existing != null && p!.PizzaName != existing.PizzaName) throw new Exception("Pizza already exists.");
             if (p == null) return null;
-
+            if(request.PizzaPrice < 1) throw new Exception("Price should not be less than zero");
+            Console.WriteLine(request.Stock);
+            if(request.Stock < 1) throw new Exception("Stock should not be less than zero");
+            if(!await _v.IsValidImageAsync(request.Image!)) 
+                throw new Exception("Invalid file. Must be an image and a maximum of 5MB");
+            
             p.PizzaName = request.PizzaName;
             p.PizzaDescription = request.PizzaDescription;
             p.PizzaCategory = request.PizzaCategory;
             p.PizzaPrice = request.PizzaPrice;
-            p.IsAvailable = request.IsAvailable;
+            p.Stock = request.Stock;
             p.DateUpdated = DateTime.UtcNow;
             await _repo.UpdateAsync(p);
+            if (request.Image != null)
+                await SaveImageAsync(id, request.Image);
             return await GetByIdAsync(id);
         }
 
@@ -92,7 +105,7 @@ namespace CebuCrust_api.Services
                 PizzaName = p.PizzaName,
                 PizzaDescription = p.PizzaDescription ?? "",
                 PizzaCategory = p.PizzaCategory ?? "",
-                IsAvailable = p.IsAvailable,
+                Stock = p.Stock,
                 IsDeleted = p.DateDeleted != null,
                 PizzaPrice = p.PizzaPrice,
                 pizzaImage = imgData
