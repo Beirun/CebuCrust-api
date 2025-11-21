@@ -13,7 +13,7 @@ namespace CebuCrust_api.Models
         public string? PizzaCategory { get; set; }
         [Column(TypeName = "decimal(10,2)")]
         public decimal PizzaPrice { get; set; }
-        public Boolean IsAvailable { get; set; }
+        public int Stock { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public DateTime? DateUpdated { get; set; }
         public DateTime? DateDeleted { get; set; }
