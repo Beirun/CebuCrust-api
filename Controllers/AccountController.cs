@@ -49,15 +49,21 @@ namespace CebuCrust_api.Controllers
         }
 
         [HttpPost("refresh")]
-        public IActionResult Refresh()
+        public async Task<IActionResult> Refresh()
         {
-            var cookie = Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(cookie)) return Unauthorized(new { message = "No refresh token" });
+            try
+            {
+                var cookie = Request.Cookies["refreshToken"];
+                if (string.IsNullOrEmpty(cookie)) return Unauthorized(new { message = "No refresh token" });
 
-            var newAccess = _svc.Refresh(cookie);
-            if (newAccess == null) return Unauthorized(new { message = "Invalid or expired refresh token" });
+                var newAccess = await _svc.Refresh(cookie);
+                if (newAccess == null) return Unauthorized(new { message = "Invalid or expired refresh token" });
 
-            return Ok(new { token = newAccess });
+                return Ok(new { token = newAccess });
+            }catch(Exception e)
+            {
+                return BadRequest(new {Message = e.Message});
+            }
         }
 
         [HttpPost("logout")]
